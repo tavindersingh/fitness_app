@@ -38,6 +38,7 @@ class _MainScreenState extends State<MainScreen> {
         },
         currentIndex: pageIndex,
         selectedItemColor: Colors.indigoAccent,
+        unselectedItemColor: Colors.grey,
         items: [
           BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined),

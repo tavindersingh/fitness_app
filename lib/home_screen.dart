@@ -1,3 +1,5 @@
+import 'package:fitness_app/widgets/home_workout.dart';
+import 'package:fitness_app/widgets/user_stat.dart';
 import 'package:flutter/material.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -22,6 +24,47 @@ class HomeScreen extends StatelessWidget {
                 fontWeight: FontWeight.bold,
                 fontSize: 28,
                 color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+      body: Container(
+        padding: EdgeInsets.all(20),
+        child: Column(
+          children: [
+            HomeWorkout(),
+            UserStat(),
+            SizedBox(
+              height: 20,
+            ),
+            Container(
+              padding: EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                spacing: 10,
+                children: [
+                  SizedBox(
+                    width: 40,
+                    height: 40,
+                    child: CircularProgressIndicator(
+                      value: 0.75,
+                      strokeWidth: 6,
+                      color: Colors.indigoAccent,
+                    ),
+                  ),
+
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("3 of 4 workouts this week"),
+                      Text("5 day streak · keep it up"),
+                    ],
+                  ),
+                ],
               ),
             ),
           ],
