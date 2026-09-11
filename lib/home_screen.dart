@@ -1,3 +1,4 @@
+import 'package:fitness_app/models/exercise.dart';
 import 'package:fitness_app/widgets/home_workout.dart';
 import 'package:fitness_app/widgets/user_stat.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +8,11 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Exercise(
+      name: "Bench Press",
+      tool: "Barbell",
+      bodyPart: "Chest",
+    );
     return Scaffold(
       backgroundColor: Color(0xFF0b0d0f),
       appBar: AppBar(
