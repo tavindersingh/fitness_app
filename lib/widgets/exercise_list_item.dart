@@ -26,7 +26,14 @@ class ExerciseListItem extends StatelessWidget {
           SizedBox(
             width: 48,
             height: 48,
-            child: Placeholder(),
+            child: exercise.imageUrl != null
+                ? Image.asset(
+                    exercise.imageUrl ?? "",
+                    // color: Colors.white,
+                    width: 48,
+                    height: 48,
+                  )
+                : Placeholder(),
           ),
           const SizedBox(
             width: 10,
