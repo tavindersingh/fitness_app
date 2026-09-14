@@ -8,11 +8,6 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Exercise(
-      name: "Bench Press",
-      tool: "Barbell",
-      bodyPart: "Chest",
-    );
     return Scaffold(
       backgroundColor: Color(0xFF0b0d0f),
       appBar: AppBar(
