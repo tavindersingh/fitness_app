@@ -23,9 +23,16 @@ class ExerciseListItem extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       child: Row(
         children: [
-          SizedBox(
-            width: 48,
-            height: 48,
+          Container(
+            width: 56,
+            height: 56,
+            padding: EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: Color(0xFF272a2e),
+              ),
+              borderRadius: BorderRadius.circular(8),
+            ),
             child: exercise.imageUrl != null
                 ? Image.asset(
                     exercise.imageUrl ?? "",

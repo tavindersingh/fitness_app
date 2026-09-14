@@ -7,8 +7,18 @@ List<Exercise> exercisesList = [
     tool: "Barbell",
     imageUrl: "assets/images/benchpress.png",
   ),
-  Exercise(name: "Squats", bodyPart: "Legs", tool: "Core"),
-  Exercise(name: "DeadLift", bodyPart: "Back", tool: "Barbell"),
+  Exercise(
+    name: "Squats",
+    bodyPart: "Legs",
+    tool: "Core",
+    imageUrl: "assets/images/squats.png",
+  ),
+  Exercise(
+    name: "DeadLift",
+    bodyPart: "Back",
+    tool: "Barbell",
+    imageUrl: "assets/images/deadlift.png",
+  ),
 ];
 
 List<String> bodyParts = [
