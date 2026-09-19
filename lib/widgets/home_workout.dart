@@ -1,3 +1,4 @@
+import 'package:fitness_app/current_workout_screen.dart';
 import 'package:flutter/material.dart';
 
 class HomeWorkout extends StatelessWidget {
@@ -55,7 +56,14 @@ class HomeWorkout extends StatelessWidget {
             ],
           ),
 
-          ElevatedButton(onPressed: () {}, child: Text("Start Workout")),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => CurrentWorkoutScreen()),
+              );
+            },
+            child: Text("Start Workout"),
+          ),
         ],
       ),
     );

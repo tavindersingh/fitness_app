@@ -1,4 +1,5 @@
 class Exercise {
+  final int id;
   final String name;
   final String bodyPart;
   final String tool;
@@ -7,6 +8,7 @@ class Exercise {
   final String featureImageUrl;
 
   Exercise({
+    required this.id,
     required this.name,
     required this.bodyPart,
     required this.tool,

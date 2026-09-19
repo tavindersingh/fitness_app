@@ -2,6 +2,7 @@ import 'package:fitness_app/models/exercise.dart';
 
 List<Exercise> exercisesList = [
   Exercise(
+    id: 1,
     name: "Bench Press",
     bodyPart: "Chest",
     tool: "Barbell",
@@ -15,6 +16,7 @@ List<Exercise> exercisesList = [
     featureImageUrl: "assets/images/benchpress.jpg",
   ),
   Exercise(
+    id: 2,
     name: "Squats",
     bodyPart: "Legs",
     tool: "Core",
@@ -28,6 +30,7 @@ List<Exercise> exercisesList = [
     featureImageUrl: "assets/images/squats.jpg",
   ),
   Exercise(
+    id: 3,
     name: "DeadLift",
     bodyPart: "Back",
     tool: "Barbell",

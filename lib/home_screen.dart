@@ -1,4 +1,3 @@
-import 'package:fitness_app/models/exercise.dart';
 import 'package:fitness_app/widgets/home_workout.dart';
 import 'package:fitness_app/widgets/user_stat.dart';
 import 'package:flutter/material.dart';
