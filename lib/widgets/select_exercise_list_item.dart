@@ -3,12 +3,16 @@ import 'package:flutter/material.dart';
 
 class SelectExerciseListItem extends StatelessWidget {
   final Exercise exercise;
+  final bool isSelected;
   final Function(int id) onExerciseSelected;
+  final Function(int id) onExerciseUnselected;
 
   const SelectExerciseListItem({
     super.key,
     required this.exercise,
+    this.isSelected = false,
     required this.onExerciseSelected,
+    required this.onExerciseUnselected,
   });
 
   @override
@@ -85,18 +89,32 @@ class SelectExerciseListItem extends StatelessWidget {
           ),
           GestureDetector(
             onTap: () {
-              onExerciseSelected(exercise.id);
+              if (isSelected) {
+                onExerciseUnselected(exercise.id);
+              } else {
+                onExerciseSelected(exercise.id);
+              }
             },
             child: Container(
-              width: 20,
-              height: 20,
+              width: 28,
+              height: 28,
               decoration: BoxDecoration(
+                color: isSelected ? Colors.green : Colors.transparent,
                 borderRadius: BorderRadius.circular(100),
                 border: Border.all(
-                  color: Colors.grey,
+                  color: isSelected ? Colors.green : Colors.grey,
                   width: 2,
                 ),
               ),
+              child: isSelected
+                  ? Center(
+                      child: Icon(
+                        Icons.check_rounded,
+                        color: Color(0xFF15181c),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    )
+                  : null,
             ),
           ),
         ],

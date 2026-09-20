@@ -1,4 +1,5 @@
 import 'package:dotted_border/dotted_border.dart';
+import 'package:fitness_app/models/exercise.dart';
 import 'package:fitness_app/models/workout.dart';
 import 'package:fitness_app/select_exercise_screen.dart';
 import 'package:flutter/material.dart';
@@ -11,7 +12,7 @@ class CurrentWorkoutScreen extends StatefulWidget {
 }
 
 class _CurrentWorkoutScreenState extends State<CurrentWorkoutScreen> {
-  List<Workout> workout = [];
+  List<Workout> workoutList = [];
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +25,32 @@ class _CurrentWorkoutScreenState extends State<CurrentWorkoutScreen> {
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Expanded(
+              child: ListView.builder(
+                itemCount: workoutList.length,
+                itemBuilder: (context, index) {
+                  Workout workout = workoutList[index];
+
+                  return Container(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          workout.exercise.name,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 24,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
             Row(
               children: [
                 Expanded(
@@ -35,12 +61,24 @@ class _CurrentWorkoutScreenState extends State<CurrentWorkoutScreen> {
                       radius: Radius.circular(16),
                     ),
                     child: GestureDetector(
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => SelectExerciseScreen(),
-                          ),
-                        );
+                      onTap: () async {
+                        List<Exercise>? selectedExercisesList =
+                            await Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => SelectExerciseScreen(),
+                              ),
+                            );
+
+                        if (selectedExercisesList != null) {
+                          for (Exercise exercise in selectedExercisesList) {
+                            Workout workout = Workout(exercise: exercise);
+                            workoutList.add(workout);
+                          }
+
+                          setState(() {});
+                        }
+
+                        print(selectedExercisesList);
                       },
                       child: Padding(
                         padding: const EdgeInsets.symmetric(

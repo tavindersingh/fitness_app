@@ -107,8 +107,26 @@ class _SelectExerciseScreenState extends State<SelectExerciseScreen> {
                     itemBuilder: (context, index) {
                       return SelectExerciseListItem(
                         exercise: filteredExerciseList[index],
+                        isSelected: isExerciseSelected(
+                          filteredExerciseList[index].id,
+                        ),
                         onExerciseSelected: (int id) {
-                          // logic to update UI
+                          setState(() {
+                            if (isExerciseSelected(id)) {
+                              return;
+                            }
+
+                            selectedExerciseIds.add(id);
+                          });
+                        },
+                        onExerciseUnselected: (int id) {
+                          setState(() {
+                            selectedExerciseIds = selectedExerciseIds
+                                .where(
+                                  (item) => item != id,
+                                )
+                                .toList();
+                          });
                         },
                       );
                     },
@@ -124,8 +142,56 @@ class _SelectExerciseScreenState extends State<SelectExerciseScreen> {
                     ),
                   ),
           ),
+
+          Container(
+            margin: const EdgeInsets.only(bottom: 30),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      List<Exercise> selectedExercisesList = [];
+
+                      for (int i = 0; i < selectedExerciseIds.length; i++) {
+                        Exercise selectedExercise = exercisesList.firstWhere(
+                          (item) => item.id == selectedExerciseIds[i],
+                        );
+
+                        selectedExercisesList.add(selectedExercise);
+                      }
+
+                      Navigator.pop(context, selectedExercisesList);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.indigoAccent,
+                      foregroundColor: Colors.white,
+                    ),
+                    child: Text(
+                      "Save Exercise",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
+  }
+
+  bool isExerciseSelected(int id) {
+    // search
+    for (int i = 0; i < selectedExerciseIds.length; i++) {
+      if (id == selectedExerciseIds[i]) {
+        return true;
+      }
+    }
+
+    return false;
   }
 }
