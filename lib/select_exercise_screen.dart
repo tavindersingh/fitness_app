@@ -1,5 +1,6 @@
 import 'package:fitness_app/data/exercise_list.dart';
 import 'package:fitness_app/models/exercise.dart';
+import 'package:fitness_app/widgets/app_button.dart';
 import 'package:fitness_app/widgets/select_exercise_list_item.dart';
 import 'package:flutter/material.dart';
 
@@ -146,37 +147,21 @@ class _SelectExerciseScreenState extends State<SelectExerciseScreen> {
           Container(
             margin: const EdgeInsets.only(bottom: 30),
             padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      List<Exercise> selectedExercisesList = [];
+            child: AppButton(
+              label: "Select Exercise",
+              onPressed: () {
+                List<Exercise> selectedExercisesList = [];
 
-                      for (int i = 0; i < selectedExerciseIds.length; i++) {
-                        Exercise selectedExercise = exercisesList.firstWhere(
-                          (item) => item.id == selectedExerciseIds[i],
-                        );
+                for (int i = 0; i < selectedExerciseIds.length; i++) {
+                  Exercise selectedExercise = exercisesList.firstWhere(
+                    (item) => item.id == selectedExerciseIds[i],
+                  );
 
-                        selectedExercisesList.add(selectedExercise);
-                      }
+                  selectedExercisesList.add(selectedExercise);
+                }
 
-                      Navigator.pop(context, selectedExercisesList);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.indigoAccent,
-                      foregroundColor: Colors.white,
-                    ),
-                    child: Text(
-                      "Save Exercise",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+                Navigator.pop(context, selectedExercisesList);
+              },
             ),
           ),
         ],

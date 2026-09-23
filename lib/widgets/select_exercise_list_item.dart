@@ -1,4 +1,5 @@
 import 'package:fitness_app/models/exercise.dart';
+import 'package:fitness_app/widgets/app_checkbox.dart';
 import 'package:flutter/material.dart';
 
 class SelectExerciseListItem extends StatelessWidget {
@@ -87,36 +88,46 @@ class SelectExerciseListItem extends StatelessWidget {
               ],
             ),
           ),
-          GestureDetector(
-            onTap: () {
+          AppCheckbox(
+            isSelected: isSelected,
+            onClick: (value) {
               if (isSelected) {
                 onExerciseUnselected(exercise.id);
               } else {
                 onExerciseSelected(exercise.id);
               }
             },
-            child: Container(
-              width: 28,
-              height: 28,
-              decoration: BoxDecoration(
-                color: isSelected ? Colors.green : Colors.transparent,
-                borderRadius: BorderRadius.circular(100),
-                border: Border.all(
-                  color: isSelected ? Colors.green : Colors.grey,
-                  width: 2,
-                ),
-              ),
-              child: isSelected
-                  ? Center(
-                      child: Icon(
-                        Icons.check_rounded,
-                        color: Color(0xFF15181c),
-                        fontWeight: FontWeight.bold,
-                      ),
-                    )
-                  : null,
-            ),
           ),
+          // GestureDetector(
+          //   onTap: () {
+          //     if (isSelected) {
+          //       onExerciseUnselected(exercise.id);
+          //     } else {
+          //       onExerciseSelected(exercise.id);
+          //     }
+          //   },
+          //   child: Container(
+          //     width: 28,
+          //     height: 28,
+          //     decoration: BoxDecoration(
+          //       color: isSelected ? Colors.green : Colors.transparent,
+          //       borderRadius: BorderRadius.circular(100),
+          //       border: Border.all(
+          //         color: isSelected ? Colors.green : Colors.grey,
+          //         width: 2,
+          //       ),
+          //     ),
+          //     child: isSelected
+          //         ? Center(
+          //             child: Icon(
+          //               Icons.check_rounded,
+          //               color: Color(0xFF15181c),
+          //               fontWeight: FontWeight.bold,
+          //             ),
+          //           )
+          //         : null,
+          //   ),
+          // ),
         ],
       ),
     );

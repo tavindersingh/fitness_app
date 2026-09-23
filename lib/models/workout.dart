@@ -4,9 +4,11 @@ import 'package:fitness_app/models/exercise_set.dart';
 class Workout {
   final Exercise exercise;
   final List<ExerciseSet> sets;
+  bool isCompleted;
 
   Workout({
     required this.exercise,
     this.sets = const [],
+    this.isCompleted = false,
   });
 }
