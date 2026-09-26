@@ -1,3 +1,5 @@
+import 'package:fitness_app/select_session_screen.dart';
+import 'package:fitness_app/widgets/app_button.dart';
 import 'package:fitness_app/widgets/home_workout.dart';
 import 'package:fitness_app/widgets/user_stat.dart';
 import 'package:flutter/material.dart';
@@ -33,6 +35,16 @@ class HomeScreen extends StatelessWidget {
         padding: EdgeInsets.all(20),
         child: Column(
           children: [
+            AppButton(
+              label: "Select Workout Session",
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => SelectSessionScreen(),
+                  ),
+                );
+              },
+            ),
             HomeWorkout(),
             UserStat(),
             SizedBox(
