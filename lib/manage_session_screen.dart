@@ -1,4 +1,6 @@
 import 'package:fitness_app/data/exercise_list.dart';
+import 'package:fitness_app/database/database.dart';
+import 'package:fitness_app/database/database_provider.dart';
 import 'package:fitness_app/models/exercise.dart';
 import 'package:fitness_app/widgets/select_exercise_list_item.dart';
 import 'package:flutter/material.dart';
@@ -41,7 +43,11 @@ class _ManageSessionScreenState extends State<ManageSessionScreen> {
           IconButton(
             onPressed: () {
               String name = _nameController.text;
-              // selectedExerciseIds = [10]
+
+              storePlanDetails(
+                name,
+                selectedExerciseIds,
+              );
             },
             icon: Icon(Icons.check_rounded),
             tooltip: "Save Session",
@@ -189,5 +195,32 @@ class _ManageSessionScreenState extends State<ManageSessionScreen> {
     }
 
     return false;
+  }
+
+  Future<void> storePlanDetails(
+    String name,
+    List<int> selectedExerciseIds,
+  ) async {
+    final databaseProvider = DatabaseProvider();
+    final database = databaseProvider.database;
+
+    int planId = await database
+        .into(database.plan)
+        .insert(
+          PlanCompanion.insert(name: name),
+        );
+
+    for (int id in selectedExerciseIds) {
+      int savedId = await database
+          .into(database.workoutExercise)
+          .insert(
+            WorkoutExerciseCompanion.insert(
+              exerciseId: id,
+              planId: planId,
+            ),
+          );
+
+      print(savedId);
+    }
   }
 }

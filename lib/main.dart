@@ -1,7 +1,13 @@
+import 'package:fitness_app/database/database_provider.dart';
 import 'package:fitness_app/main_screen.dart';
 import 'package:flutter/material.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // final database = AppDatabase();
+  DatabaseProvider();
+
   runApp(const MyApp());
 }
 
