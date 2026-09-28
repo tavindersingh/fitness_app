@@ -1,8 +1,14 @@
 import 'package:fitness_app/current_workout_screen.dart';
+import 'package:fitness_app/database/database.dart';
 import 'package:flutter/material.dart';
 
 class HomeWorkout extends StatelessWidget {
-  const HomeWorkout({super.key});
+  final PlanData planData;
+
+  const HomeWorkout({
+    super.key,
+    required this.planData,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +39,7 @@ class HomeWorkout extends StatelessWidget {
           ),
 
           Text(
-            "Upper Body Strength",
+            planData.name,
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,

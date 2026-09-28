@@ -1,11 +1,19 @@
+import 'package:fitness_app/database/database.dart';
 import 'package:fitness_app/select_session_screen.dart';
 import 'package:fitness_app/widgets/app_button.dart';
 import 'package:fitness_app/widgets/home_workout.dart';
 import 'package:fitness_app/widgets/user_stat.dart';
 import 'package:flutter/material.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  PlanData? selectedWorkout;
 
   @override
   Widget build(BuildContext context) {
@@ -35,17 +43,26 @@ class HomeScreen extends StatelessWidget {
         padding: EdgeInsets.all(20),
         child: Column(
           children: [
-            AppButton(
-              label: "Select Workout Session",
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => SelectSessionScreen(),
+            selectedWorkout != null
+                ? HomeWorkout(
+                    planData: selectedWorkout!,
+                  )
+                : AppButton(
+                    label: "Select Workout Session",
+                    onPressed: () async {
+                      PlanData? planData = await Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => SelectSessionScreen(),
+                        ),
+                      );
+
+                      if (planData != null) {
+                        setState(() {
+                          selectedWorkout = planData;
+                        });
+                      }
+                    },
                   ),
-                );
-              },
-            ),
-            HomeWorkout(),
             UserStat(),
             SizedBox(
               height: 20,

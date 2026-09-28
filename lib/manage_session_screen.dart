@@ -41,13 +41,17 @@ class _ManageSessionScreenState extends State<ManageSessionScreen> {
         ),
         actions: [
           IconButton(
-            onPressed: () {
+            onPressed: () async {
               String name = _nameController.text;
 
-              storePlanDetails(
+              await storePlanDetails(
                 name,
                 selectedExerciseIds,
               );
+
+              if (context.mounted) {
+                Navigator.of(context).pop();
+              }
             },
             icon: Icon(Icons.check_rounded),
             tooltip: "Save Session",
@@ -211,7 +215,7 @@ class _ManageSessionScreenState extends State<ManageSessionScreen> {
         );
 
     for (int id in selectedExerciseIds) {
-      int savedId = await database
+      await database
           .into(database.workoutExercise)
           .insert(
             WorkoutExerciseCompanion.insert(
@@ -219,8 +223,6 @@ class _ManageSessionScreenState extends State<ManageSessionScreen> {
               planId: planId,
             ),
           );
-
-      print(savedId);
     }
   }
 }
