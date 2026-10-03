@@ -45,7 +45,7 @@ class ExerciseListItem extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Image.asset(
-                exercise.imageUrl ?? "",
+                exercise.imageUrl,
                 // color: Colors.white,
                 width: 48,
                 height: 48,

@@ -65,7 +65,11 @@ class HomeWorkout extends StatelessWidget {
           ElevatedButton(
             onPressed: () {
               Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => CurrentWorkoutScreen()),
+                MaterialPageRoute(
+                  builder: (context) => CurrentWorkoutScreen(
+                    planData: planData,
+                  ),
+                ),
               );
             },
             child: Text("Start Workout"),
