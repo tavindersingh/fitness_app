@@ -1,4 +1,6 @@
+import 'package:drift/drift.dart' hide Column;
 import 'package:fitness_app/database/database.dart';
+import 'package:fitness_app/database/database_provider.dart';
 import 'package:fitness_app/select_session_screen.dart';
 import 'package:fitness_app/widgets/app_button.dart';
 import 'package:fitness_app/widgets/home_workout.dart';
@@ -14,6 +16,12 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   PlanData? selectedWorkout;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchTodaysSession();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,17 +58,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 : AppButton(
                     label: "Select Workout Session",
                     onPressed: () async {
-                      PlanData? planData = await Navigator.of(context).push(
+                      await Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (context) => SelectSessionScreen(),
                         ),
                       );
-
-                      if (planData != null) {
-                        setState(() {
-                          selectedWorkout = planData;
-                        });
-                      }
                     },
                   ),
             UserStat(),
@@ -101,4 +103,29 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+
+  Future<void> fetchTodaysSession() async {
+    final databaseProvider = DatabaseProvider();
+    final database = databaseProvider.database;
+
+    DateTime now = DateTime.now();
+    String currentDate = '${now.year}-${now.month}-${now.day}';
+
+    // DailySessionData? data =
+    //     await (database.select(
+    //           database.dailySession,
+    //         )..where((session) {
+    //           print(session.createdAt.date);
+    //           return session.createdAt.date.equals(currentDate);
+    //         }))
+    //         .getSingleOrNull();
+
+    // print(data);
+
+    final list = await database.select(database.dailySession).get();
+
+    print(list);
+  }
 }
+
+// 2026-10-05

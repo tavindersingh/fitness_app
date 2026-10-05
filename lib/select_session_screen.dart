@@ -63,8 +63,12 @@ class _SelectSessionScreenState extends State<SelectSessionScreen> {
               PlanData planData = (snapshot.data as List<PlanData>)[index];
 
               return GestureDetector(
-                onTap: () {
-                  Navigator.of(context).pop(planData);
+                onTap: () async {
+                  await saveSelectedPlan(planData);
+
+                  if (context.mounted) {
+                    Navigator.of(context).pop();
+                  }
                 },
                 child: Container(
                   decoration: BoxDecoration(
@@ -91,6 +95,30 @@ class _SelectSessionScreenState extends State<SelectSessionScreen> {
         },
       ),
     );
+  }
+
+  Future<void> saveSelectedPlan(PlanData planData) async {
+    final databaseProvider = DatabaseProvider();
+    final database = databaseProvider.database;
+
+    List<WorkoutExerciseData> filteredWorkoutList = await (database.select(
+      database.workoutExercise,
+    )..where((workout) => workout.planId.equals(planData.id))).get();
+
+    final dailySessionId = await database
+        .into(database.dailySession)
+        .insert(DailySessionCompanion.insert(planId: planData.id));
+
+    for (var workout in filteredWorkoutList) {
+      await database
+          .into(database.sessionExerciseStatus)
+          .insert(
+            SessionExerciseStatusCompanion.insert(
+              dailySessionId: dailySessionId,
+              exerciseId: workout.exerciseId,
+            ),
+          );
+    }
   }
 
   Future<void> fetchExercisePlans() async {

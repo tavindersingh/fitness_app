@@ -9,13 +9,13 @@ class Plan extends Table {
 //   // id
 //   // planId = UpperChest
 //   // isFinished = false
-//   // Date
+//   // Date = 05/10/2026
 // }
 
 // class SessionExerciseStatus {
 //   // id
 //   // dailySessionId
 //   // exerciseId = Bench Press
-//   // Date
+//   // Date = 05/10/2026
 //   // isFinished
 // }
