@@ -4,10 +4,16 @@ import 'package:flutter/material.dart';
 
 class HomeWorkout extends StatelessWidget {
   final PlanData planData;
+  final DailySessionData dailySessionData;
+  final List<SessionExerciseStatusData> sessionExerciseStatusDataList;
+  final VoidCallback updateStatusFromDatabase;
 
   const HomeWorkout({
     super.key,
     required this.planData,
+    required this.dailySessionData,
+    required this.sessionExerciseStatusDataList,
+    required this.updateStatusFromDatabase,
   });
 
   @override
@@ -51,7 +57,7 @@ class HomeWorkout extends StatelessWidget {
             spacing: 4,
             children: [
               Text(
-                "6 exercises",
+                "${sessionExerciseStatusDataList.length} exercises",
                 style: TextStyle(color: Colors.white, fontSize: 16),
               ),
               Text("·", style: TextStyle(color: Colors.white, fontSize: 16)),
@@ -63,14 +69,19 @@ class HomeWorkout extends StatelessWidget {
           ),
 
           ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).push(
+            onPressed: () async {
+              await Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (context) => CurrentWorkoutScreen(
                     planData: planData,
+                    dailySessionData: dailySessionData,
+                    sessionExerciseStatusDataList:
+                        sessionExerciseStatusDataList,
                   ),
                 ),
               );
+
+              updateStatusFromDatabase();
             },
             child: Text("Start Workout"),
           ),

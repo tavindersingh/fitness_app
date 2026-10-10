@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' hide Column;
 import 'package:fitness_app/data/exercise_list.dart';
 import 'package:fitness_app/database/database.dart';
 import 'package:fitness_app/database/database_provider.dart';
@@ -9,10 +10,14 @@ import 'package:flutter/material.dart';
 
 class CurrentWorkoutScreen extends StatefulWidget {
   final PlanData planData;
+  final DailySessionData dailySessionData;
+  final List<SessionExerciseStatusData> sessionExerciseStatusDataList;
 
   const new({
     super.key,
     required this.planData,
+    required this.dailySessionData,
+    required this.sessionExerciseStatusDataList,
   });
 
   @override
@@ -23,15 +28,12 @@ class _CurrentWorkoutScreenState extends State<CurrentWorkoutScreen> {
   List<Workout> workoutList = [];
 
   Future<void> _fetchExercisesList(int planId) async {
-    final databaseProvider = DatabaseProvider();
-    final database = databaseProvider.database;
+    // List<WorkoutExerciseData> filteredWorkoutList = await (database.select(
+    //   database.workoutExercise,
+    // )..where((workout) => workout.planId.equals(planId))).get();
 
-    List<WorkoutExerciseData> filteredWorkoutList = await (database.select(
-      database.workoutExercise,
-    )..where((workout) => workout.planId.equals(planId))).get();
-
-    for (var workout in filteredWorkoutList) {
-      int exerciseId = workout.exerciseId;
+    for (var exerciseStatus in widget.sessionExerciseStatusDataList) {
+      int exerciseId = exerciseStatus.exerciseId;
 
       List<Exercise> filteredExercisesList = exercisesList
           .where(
@@ -43,6 +45,7 @@ class _CurrentWorkoutScreenState extends State<CurrentWorkoutScreen> {
         workoutList.add(
           Workout(
             exercise: item,
+            isCompleted: exerciseStatus.isFinished,
           ),
         );
       }
@@ -51,11 +54,30 @@ class _CurrentWorkoutScreenState extends State<CurrentWorkoutScreen> {
     setState(() {});
   }
 
+  Future<void> toggleExerciseStatus(int exerciseId, bool isFinished) async {
+    final databaseProvider = DatabaseProvider();
+    final database = databaseProvider.database;
+
+    await (database.update(
+            database.sessionExerciseStatus,
+          )
+          ..where(
+            (status) =>
+                status.dailySessionId.equals(widget.dailySessionData.id),
+          )
+          ..where((status) => status.exerciseId.equals(exerciseId)))
+        .write(
+          SessionExerciseStatusCompanion(
+            isFinished: Value(isFinished),
+          ),
+        );
+  }
+
   @override
   void initState() {
     super.initState();
 
-    _fetchExercisesList(widget.planData.id);
+    _fetchExercisesList(widget.dailySessionData.planId);
   }
 
   @override
@@ -65,6 +87,8 @@ class _CurrentWorkoutScreenState extends State<CurrentWorkoutScreen> {
       appBar: AppBar(
         iconTheme: IconThemeData(color: Colors.white),
         backgroundColor: Color(0xFF0b0d0f),
+        title: Text(widget.planData.name),
+        foregroundColor: Colors.white,
       ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
@@ -75,7 +99,6 @@ class _CurrentWorkoutScreenState extends State<CurrentWorkoutScreen> {
               child: ListView.builder(
                 itemCount: workoutList.length + 1,
                 itemBuilder: (context, index) {
-                  print(workoutList.length);
                   if (index == workoutList.length) {
                     // return addExerciseButton();
 
@@ -98,7 +121,11 @@ class _CurrentWorkoutScreenState extends State<CurrentWorkoutScreen> {
                       children: [
                         AppCheckbox(
                           isSelected: workout.isCompleted,
-                          onClick: (value) {
+                          onClick: (value) async {
+                            await toggleExerciseStatus(
+                              workoutList[index].exercise.id,
+                              value,
+                            );
                             setState(() {
                               workoutList[index].isCompleted = value;
                             });
@@ -130,53 +157,4 @@ class _CurrentWorkoutScreenState extends State<CurrentWorkoutScreen> {
       ),
     );
   }
-
-  // Widget addExerciseButton() {
-  //   return GestureDetector(
-  //     onTap: () async {
-  //       List<Exercise>? selectedExercisesList = await Navigator.of(context)
-  //           .push(
-  //             MaterialPageRoute(
-  //               builder: (context) => SelectExerciseScreen(),
-  //             ),
-  //           );
-
-  //       if (selectedExercisesList != null) {
-  //         for (Exercise exercise in selectedExercisesList) {
-  //           Workout workout = Workout(exercise: exercise);
-  //           workoutList.add(workout);
-  //         }
-
-  //         setState(() {});
-  //       }
-  //     },
-  //     child: Row(
-  //       children: [
-  //         Expanded(
-  //           child: DottedBorder(
-  //             options: RoundedRectDottedBorderOptions(
-  //               dashPattern: [20, 5],
-  //               color: Colors.grey,
-  //               radius: Radius.circular(16),
-  //             ),
-  //             child: Padding(
-  //               padding: const EdgeInsets.symmetric(
-  //                 vertical: 10,
-  //               ),
-  //               child: Center(
-  //                 child: Text(
-  //                   '+ Add Exercise',
-  //                   style: TextStyle(
-  //                     fontWeight: FontWeight.bold,
-  //                     color: Colors.grey,
-  //                   ),
-  //                 ),
-  //               ),
-  //             ),
-  //           ),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
 }
