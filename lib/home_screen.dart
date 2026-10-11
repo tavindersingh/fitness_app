@@ -78,6 +78,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 builder: (context) => SelectSessionScreen(),
                               ),
                             );
+                            fetchTodaysSession();
                           },
                         ),
                   UserStat(),
@@ -134,6 +135,9 @@ class _HomeScreenState extends State<HomeScreen> {
             .getSingleOrNull();
 
     if (data == null) {
+      setState(() {
+        isLoading = false;
+      });
       return;
     }
 
@@ -147,6 +151,9 @@ class _HomeScreenState extends State<HomeScreen> {
     )..where((session) => session.id.equals(data.planId))).getSingleOrNull();
 
     if (planData == null) {
+      setState(() {
+        isLoading = false;
+      });
       return;
     }
 

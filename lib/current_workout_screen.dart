@@ -6,6 +6,7 @@ import 'package:fitness_app/models/exercise.dart';
 import 'package:fitness_app/models/workout.dart';
 import 'package:fitness_app/widgets/app_button.dart';
 import 'package:fitness_app/widgets/app_checkbox.dart';
+import 'package:fitness_app/widgets/session_timer.dart';
 import 'package:flutter/material.dart';
 
 class CurrentWorkoutScreen extends StatefulWidget {
@@ -26,6 +27,8 @@ class CurrentWorkoutScreen extends StatefulWidget {
 
 class _CurrentWorkoutScreenState extends State<CurrentWorkoutScreen> {
   List<Workout> workoutList = [];
+
+  bool isWorkoutFinished = false;
 
   Future<void> _fetchExercisesList(int planId) async {
     // List<WorkoutExerciseData> filteredWorkoutList = await (database.select(
@@ -73,11 +76,68 @@ class _CurrentWorkoutScreenState extends State<CurrentWorkoutScreen> {
         );
   }
 
+  Future<void> finishSession(int dailySessionId) async {
+    final databaseProvider = DatabaseProvider();
+    final database = databaseProvider.database;
+
+    isWorkoutFinished = true;
+
+    await (database.update(
+          database.dailySession,
+        )..where(
+          (session) => session.id.equals(dailySessionId),
+        ))
+        .write(
+          DailySessionCompanion(
+            isFinished: Value(true),
+          ),
+        );
+
+    setState(() {});
+  }
+
+  void showConfirmationDialog() async {
+    bool? result = await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Are you sure?'),
+          content: Text('Do you really want to finish this session'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+              child: Text(
+                "No",
+                style: TextStyle(color: Colors.red),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+              child: Text(
+                "Yes",
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (result != null && result) {
+      finishSession(widget.dailySessionData.id);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
 
     _fetchExercisesList(widget.dailySessionData.planId);
+
+    isWorkoutFinished = widget.dailySessionData.isFinished;
   }
 
   @override
@@ -89,6 +149,9 @@ class _CurrentWorkoutScreenState extends State<CurrentWorkoutScreen> {
         backgroundColor: Color(0xFF0b0d0f),
         title: Text(widget.planData.name),
         foregroundColor: Colors.white,
+        actions: [
+          SessionTimer(),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
@@ -149,8 +212,14 @@ class _CurrentWorkoutScreenState extends State<CurrentWorkoutScreen> {
               ),
             ),
             AppButton(
-              label: "Finish Session",
-              onPressed: () {},
+              label: isWorkoutFinished
+                  ? "Session already finished"
+                  : "Finish Session",
+              onPressed: isWorkoutFinished
+                  ? null
+                  : () {
+                      showConfirmationDialog();
+                    },
             ),
           ],
         ),

@@ -16,12 +16,11 @@ class AppButton extends StatelessWidget {
       children: [
         Expanded(
           child: ElevatedButton(
-            onPressed: () {
-              onPressed?.call();
-            },
+            onPressed: onPressed,
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.indigoAccent,
               foregroundColor: Colors.white,
+              disabledBackgroundColor: Colors.grey,
             ),
             child: Text(
               label,
