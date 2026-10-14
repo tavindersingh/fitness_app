@@ -486,6 +486,30 @@ class $DailySessionTable extends DailySession
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _startedAtMeta = const VerificationMeta(
+    'startedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> startedAt = GeneratedColumn<DateTime>(
+    'started_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: Constant(null),
+  );
+  static const VerificationMeta _finishedAtMeta = const VerificationMeta(
+    'finishedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> finishedAt = GeneratedColumn<DateTime>(
+    'finished_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: Constant(null),
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -499,7 +523,14 @@ class $DailySessionTable extends DailySession
     defaultValue: currentDateAndTime,
   );
   @override
-  List<GeneratedColumn> get $columns => [id, planId, isFinished, createdAt];
+  List<GeneratedColumn> get $columns => [
+    id,
+    planId,
+    isFinished,
+    startedAt,
+    finishedAt,
+    createdAt,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -529,6 +560,18 @@ class $DailySessionTable extends DailySession
         isFinished.isAcceptableOrUnknown(data['is_finished']!, _isFinishedMeta),
       );
     }
+    if (data.containsKey('started_at')) {
+      context.handle(
+        _startedAtMeta,
+        startedAt.isAcceptableOrUnknown(data['started_at']!, _startedAtMeta),
+      );
+    }
+    if (data.containsKey('finished_at')) {
+      context.handle(
+        _finishedAtMeta,
+        finishedAt.isAcceptableOrUnknown(data['finished_at']!, _finishedAtMeta),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -556,6 +599,14 @@ class $DailySessionTable extends DailySession
         DriftSqlType.bool,
         data['${effectivePrefix}is_finished'],
       )!,
+      startedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}started_at'],
+      ),
+      finishedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}finished_at'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -574,11 +625,15 @@ class DailySessionData extends DataClass
   final int id;
   final int planId;
   final bool isFinished;
+  final DateTime? startedAt;
+  final DateTime? finishedAt;
   final DateTime createdAt;
   const DailySessionData({
     required this.id,
     required this.planId,
     required this.isFinished,
+    this.startedAt,
+    this.finishedAt,
     required this.createdAt,
   });
   @override
@@ -587,6 +642,12 @@ class DailySessionData extends DataClass
     map['id'] = Variable<int>(id);
     map['plan_id'] = Variable<int>(planId);
     map['is_finished'] = Variable<bool>(isFinished);
+    if (!nullToAbsent || startedAt != null) {
+      map['started_at'] = Variable<DateTime>(startedAt);
+    }
+    if (!nullToAbsent || finishedAt != null) {
+      map['finished_at'] = Variable<DateTime>(finishedAt);
+    }
     map['created_at'] = Variable<DateTime>(createdAt);
     return map;
   }
@@ -596,6 +657,12 @@ class DailySessionData extends DataClass
       id: Value(id),
       planId: Value(planId),
       isFinished: Value(isFinished),
+      startedAt: startedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(startedAt),
+      finishedAt: finishedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(finishedAt),
       createdAt: Value(createdAt),
     );
   }
@@ -609,6 +676,8 @@ class DailySessionData extends DataClass
       id: serializer.fromJson<int>(json['id']),
       planId: serializer.fromJson<int>(json['planId']),
       isFinished: serializer.fromJson<bool>(json['isFinished']),
+      startedAt: serializer.fromJson<DateTime?>(json['startedAt']),
+      finishedAt: serializer.fromJson<DateTime?>(json['finishedAt']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
@@ -619,6 +688,8 @@ class DailySessionData extends DataClass
       'id': serializer.toJson<int>(id),
       'planId': serializer.toJson<int>(planId),
       'isFinished': serializer.toJson<bool>(isFinished),
+      'startedAt': serializer.toJson<DateTime?>(startedAt),
+      'finishedAt': serializer.toJson<DateTime?>(finishedAt),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
@@ -627,11 +698,15 @@ class DailySessionData extends DataClass
     int? id,
     int? planId,
     bool? isFinished,
+    Value<DateTime?> startedAt = const Value.absent(),
+    Value<DateTime?> finishedAt = const Value.absent(),
     DateTime? createdAt,
   }) => DailySessionData(
     id: id ?? this.id,
     planId: planId ?? this.planId,
     isFinished: isFinished ?? this.isFinished,
+    startedAt: startedAt.present ? startedAt.value : this.startedAt,
+    finishedAt: finishedAt.present ? finishedAt.value : this.finishedAt,
     createdAt: createdAt ?? this.createdAt,
   );
   DailySessionData copyWithCompanion(DailySessionCompanion data) {
@@ -641,6 +716,10 @@ class DailySessionData extends DataClass
       isFinished: data.isFinished.present
           ? data.isFinished.value
           : this.isFinished,
+      startedAt: data.startedAt.present ? data.startedAt.value : this.startedAt,
+      finishedAt: data.finishedAt.present
+          ? data.finishedAt.value
+          : this.finishedAt,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
@@ -651,13 +730,16 @@ class DailySessionData extends DataClass
           ..write('id: $id, ')
           ..write('planId: $planId, ')
           ..write('isFinished: $isFinished, ')
+          ..write('startedAt: $startedAt, ')
+          ..write('finishedAt: $finishedAt, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, planId, isFinished, createdAt);
+  int get hashCode =>
+      Object.hash(id, planId, isFinished, startedAt, finishedAt, createdAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -665,6 +747,8 @@ class DailySessionData extends DataClass
           other.id == this.id &&
           other.planId == this.planId &&
           other.isFinished == this.isFinished &&
+          other.startedAt == this.startedAt &&
+          other.finishedAt == this.finishedAt &&
           other.createdAt == this.createdAt);
 }
 
@@ -672,29 +756,39 @@ class DailySessionCompanion extends UpdateCompanion<DailySessionData> {
   final Value<int> id;
   final Value<int> planId;
   final Value<bool> isFinished;
+  final Value<DateTime?> startedAt;
+  final Value<DateTime?> finishedAt;
   final Value<DateTime> createdAt;
   const DailySessionCompanion({
     this.id = const Value.absent(),
     this.planId = const Value.absent(),
     this.isFinished = const Value.absent(),
+    this.startedAt = const Value.absent(),
+    this.finishedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
   });
   DailySessionCompanion.insert({
     this.id = const Value.absent(),
     required int planId,
     this.isFinished = const Value.absent(),
+    this.startedAt = const Value.absent(),
+    this.finishedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
   }) : planId = Value(planId);
   static Insertable<DailySessionData> custom({
     Expression<int>? id,
     Expression<int>? planId,
     Expression<bool>? isFinished,
+    Expression<DateTime>? startedAt,
+    Expression<DateTime>? finishedAt,
     Expression<DateTime>? createdAt,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (planId != null) 'plan_id': planId,
       if (isFinished != null) 'is_finished': isFinished,
+      if (startedAt != null) 'started_at': startedAt,
+      if (finishedAt != null) 'finished_at': finishedAt,
       if (createdAt != null) 'created_at': createdAt,
     });
   }
@@ -703,12 +797,16 @@ class DailySessionCompanion extends UpdateCompanion<DailySessionData> {
     Value<int>? id,
     Value<int>? planId,
     Value<bool>? isFinished,
+    Value<DateTime?>? startedAt,
+    Value<DateTime?>? finishedAt,
     Value<DateTime>? createdAt,
   }) {
     return DailySessionCompanion(
       id: id ?? this.id,
       planId: planId ?? this.planId,
       isFinished: isFinished ?? this.isFinished,
+      startedAt: startedAt ?? this.startedAt,
+      finishedAt: finishedAt ?? this.finishedAt,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -725,6 +823,12 @@ class DailySessionCompanion extends UpdateCompanion<DailySessionData> {
     if (isFinished.present) {
       map['is_finished'] = Variable<bool>(isFinished.value);
     }
+    if (startedAt.present) {
+      map['started_at'] = Variable<DateTime>(startedAt.value);
+    }
+    if (finishedAt.present) {
+      map['finished_at'] = Variable<DateTime>(finishedAt.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -737,6 +841,8 @@ class DailySessionCompanion extends UpdateCompanion<DailySessionData> {
           ..write('id: $id, ')
           ..write('planId: $planId, ')
           ..write('isFinished: $isFinished, ')
+          ..write('startedAt: $startedAt, ')
+          ..write('finishedAt: $finishedAt, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
@@ -1445,6 +1551,8 @@ typedef $$DailySessionTableCreateCompanionBuilder =
       Value<int> id,
       required int planId,
       Value<bool> isFinished,
+      Value<DateTime?> startedAt,
+      Value<DateTime?> finishedAt,
       Value<DateTime> createdAt,
     });
 typedef $$DailySessionTableUpdateCompanionBuilder =
@@ -1452,6 +1560,8 @@ typedef $$DailySessionTableUpdateCompanionBuilder =
       Value<int> id,
       Value<int> planId,
       Value<bool> isFinished,
+      Value<DateTime?> startedAt,
+      Value<DateTime?> finishedAt,
       Value<DateTime> createdAt,
     });
 
@@ -1476,6 +1586,16 @@ class $$DailySessionTableFilterComposer
 
   ColumnFilters<bool> get isFinished => $composableBuilder(
     column: $table.isFinished,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get startedAt => $composableBuilder(
+    column: $table.startedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get finishedAt => $composableBuilder(
+    column: $table.finishedAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -1509,6 +1629,16 @@ class $$DailySessionTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get startedAt => $composableBuilder(
+    column: $table.startedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get finishedAt => $composableBuilder(
+    column: $table.finishedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -1532,6 +1662,14 @@ class $$DailySessionTableAnnotationComposer
 
   GeneratedColumn<bool> get isFinished => $composableBuilder(
     column: $table.isFinished,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get startedAt =>
+      $composableBuilder(column: $table.startedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get finishedAt => $composableBuilder(
+    column: $table.finishedAt,
     builder: (column) => column,
   );
 
@@ -1573,11 +1711,15 @@ class $$DailySessionTableTableManager
                 Value<int> id = const Value.absent(),
                 Value<int> planId = const Value.absent(),
                 Value<bool> isFinished = const Value.absent(),
+                Value<DateTime?> startedAt = const Value.absent(),
+                Value<DateTime?> finishedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
               }) => DailySessionCompanion(
                 id: id,
                 planId: planId,
                 isFinished: isFinished,
+                startedAt: startedAt,
+                finishedAt: finishedAt,
                 createdAt: createdAt,
               ),
           createCompanionCallback:
@@ -1585,11 +1727,15 @@ class $$DailySessionTableTableManager
                 Value<int> id = const Value.absent(),
                 required int planId,
                 Value<bool> isFinished = const Value.absent(),
+                Value<DateTime?> startedAt = const Value.absent(),
+                Value<DateTime?> finishedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
               }) => DailySessionCompanion.insert(
                 id: id,
                 planId: planId,
                 isFinished: isFinished,
+                startedAt: startedAt,
+                finishedAt: finishedAt,
                 createdAt: createdAt,
               ),
           withReferenceMapper: (p0) => p0

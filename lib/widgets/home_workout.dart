@@ -1,5 +1,7 @@
+import 'package:drift/drift.dart' hide Column;
 import 'package:fitness_app/current_workout_screen.dart';
 import 'package:fitness_app/database/database.dart';
+import 'package:fitness_app/database/database_provider.dart';
 import 'package:flutter/material.dart';
 
 class HomeWorkout extends StatelessWidget {
@@ -70,6 +72,13 @@ class HomeWorkout extends StatelessWidget {
 
           ElevatedButton(
             onPressed: () async {
+              // set startedAt value
+              await updateStartedAt();
+
+              if (!context.mounted) {
+                return;
+              }
+
               await Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (context) => CurrentWorkoutScreen(
@@ -88,5 +97,26 @@ class HomeWorkout extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Future<void> updateStartedAt() async {
+    print(dailySessionData.startedAt);
+
+    if (dailySessionData.startedAt != null) {
+      return;
+    }
+
+    final databaseProvider = DatabaseProvider();
+    final database = databaseProvider.database;
+    await (database.update(
+          database.dailySession,
+        )..where(
+          (session) => session.id.equals(dailySessionData.id),
+        ))
+        .write(
+          DailySessionCompanion(
+            startedAt: Value(DateTime.now()),
+          ),
+        );
   }
 }

@@ -30,6 +30,8 @@ class _CurrentWorkoutScreenState extends State<CurrentWorkoutScreen> {
 
   bool isWorkoutFinished = false;
 
+  int secondsPassed = 0;
+
   Future<void> _fetchExercisesList(int planId) async {
     // List<WorkoutExerciseData> filteredWorkoutList = await (database.select(
     //   database.workoutExercise,
@@ -138,6 +140,13 @@ class _CurrentWorkoutScreenState extends State<CurrentWorkoutScreen> {
     _fetchExercisesList(widget.dailySessionData.planId);
 
     isWorkoutFinished = widget.dailySessionData.isFinished;
+
+    DateTime now = DateTime.now();
+    Duration difference = now.difference(
+      widget.dailySessionData.startedAt ?? now,
+    );
+
+    secondsPassed = difference.inSeconds;
   }
 
   @override
@@ -150,7 +159,7 @@ class _CurrentWorkoutScreenState extends State<CurrentWorkoutScreen> {
         title: Text(widget.planData.name),
         foregroundColor: Colors.white,
         actions: [
-          SessionTimer(),
+          SessionTimer(secondsPassed: secondsPassed,),
         ],
       ),
       body: Padding(
@@ -227,3 +236,5 @@ class _CurrentWorkoutScreenState extends State<CurrentWorkoutScreen> {
     );
   }
 }
+// Current time - start time
+// convert the result to seconds

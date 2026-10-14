@@ -3,7 +3,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 class SessionTimer extends StatefulWidget {
-  const new({super.key});
+  final int secondsPassed;
+
+  const new({
+    super.key,
+    required this.secondsPassed,
+  });
 
   @override
   State<SessionTimer> createState() => _SessionTimerState();
@@ -15,6 +20,8 @@ class _SessionTimerState extends State<SessionTimer> {
 
   @override
   void initState() {
+    counter = widget.secondsPassed;
+
     _timer = Timer.periodic(
       const Duration(seconds: 1),
       (timer) {
@@ -34,20 +41,18 @@ class _SessionTimerState extends State<SessionTimer> {
 
   @override
   Widget build(BuildContext context) {
-    return Text(getFormattedTimer(counter));
+    return Text(
+      getFormattedTimer(counter),
+      style: TextStyle(
+        fontSize: 20,
+        fontWeight: FontWeight.bold,
+      ),
+    );
   }
 
   String getFormattedTimer(int counter) {
     String formattedSeconds = '';
     String formattedMinutes = '';
-
-    // 181
-    // 1 minute = 60 seconds
-
-    // (counter / 60).toInt()
-    // 1 = 01
-    // 2 = 01
-    // 11 = 11
 
     int remainingMinutes = counter ~/ 60;
     int remainingSeconds = counter % 60;
@@ -67,7 +72,11 @@ class _SessionTimerState extends State<SessionTimer> {
   }
 }
 
-
 // starttime of exercise
-// what is the current time 
+// what is the current time
 // currentTime - startTime = start Timer from here
+// 06:00 PM -> Start time
+// 06:10 PM -> Current Time
+// 10:00
+
+// Hello Shravin!

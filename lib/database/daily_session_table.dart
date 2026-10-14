@@ -6,5 +6,13 @@ class DailySession extends Table {
   BoolColumn get isFinished => boolean().withDefault(
     const Constant(false),
   )();
+  DateTimeColumn get startedAt =>
+      dateTime().nullable().withDefault(Constant(null))();
+
+  DateTimeColumn get finishedAt =>
+      dateTime().nullable().withDefault(Constant(null))();
+
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  // int workoutDurationInSeconds =
 }

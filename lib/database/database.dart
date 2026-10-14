@@ -11,12 +11,14 @@ import 'package:path_provider/path_provider.dart';
 
 part 'database.g.dart';
 
-@DriftDatabase(tables: [Plan, WorkoutExercise, DailySession, SessionExerciseStatus])
+@DriftDatabase(
+  tables: [Plan, WorkoutExercise, DailySession, SessionExerciseStatus],
+)
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 }
 
 // Helper function to open the connection
