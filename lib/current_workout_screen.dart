@@ -41,17 +41,12 @@ class _CurrentWorkoutScreenState extends State<CurrentWorkoutScreen> {
       int exerciseId = exerciseStatus.exerciseId;
 
       List<Exercise> filteredExercisesList = exercisesList
-          .where(
-            (item) => item.id == exerciseId,
-          )
+          .where((item) => item.id == exerciseId)
           .toList();
 
       for (var item in filteredExercisesList) {
         workoutList.add(
-          Workout(
-            exercise: item,
-            isCompleted: exerciseStatus.isFinished,
-          ),
+          Workout(exercise: item, isCompleted: exerciseStatus.isFinished),
         );
       }
     }
@@ -63,19 +58,13 @@ class _CurrentWorkoutScreenState extends State<CurrentWorkoutScreen> {
     final databaseProvider = DatabaseProvider();
     final database = databaseProvider.database;
 
-    await (database.update(
-            database.sessionExerciseStatus,
-          )
+    await (database.update(database.sessionExerciseStatus)
           ..where(
             (status) =>
                 status.dailySessionId.equals(widget.dailySessionData.id),
           )
           ..where((status) => status.exerciseId.equals(exerciseId)))
-        .write(
-          SessionExerciseStatusCompanion(
-            isFinished: Value(isFinished),
-          ),
-        );
+        .write(SessionExerciseStatusCompanion(isFinished: Value(isFinished)));
   }
 
   Future<void> finishSession(int dailySessionId) async {
@@ -85,15 +74,14 @@ class _CurrentWorkoutScreenState extends State<CurrentWorkoutScreen> {
     isWorkoutFinished = true;
 
     await (database.update(
-          database.dailySession,
-        )..where(
-          (session) => session.id.equals(dailySessionId),
-        ))
-        .write(
-          DailySessionCompanion(
-            isFinished: Value(true),
-          ),
-        );
+      database.dailySession,
+    )..where((session) => session.id.equals(dailySessionId))).write(
+      DailySessionCompanion(
+        isFinished: Value(true),
+        finishedAt: Value(DateTime.now()),
+        workoutDurationInSeconds: Value(secondsPassed),
+      ),
+    );
 
     setState(() {});
   }
@@ -110,18 +98,13 @@ class _CurrentWorkoutScreenState extends State<CurrentWorkoutScreen> {
               onPressed: () {
                 Navigator.of(context).pop(false);
               },
-              child: Text(
-                "No",
-                style: TextStyle(color: Colors.red),
-              ),
+              child: Text("No", style: TextStyle(color: Colors.red)),
             ),
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop(true);
               },
-              child: Text(
-                "Yes",
-              ),
+              child: Text("Yes"),
             ),
           ],
         );
@@ -159,7 +142,10 @@ class _CurrentWorkoutScreenState extends State<CurrentWorkoutScreen> {
         title: Text(widget.planData.name),
         foregroundColor: Colors.white,
         actions: [
-          SessionTimer(secondsPassed: secondsPassed,),
+          SessionTimer(
+            isActive: !isWorkoutFinished,
+            secondsPassed: secondsPassed,
+          ),
         ],
       ),
       body: Padding(
@@ -183,9 +169,7 @@ class _CurrentWorkoutScreenState extends State<CurrentWorkoutScreen> {
                     margin: const EdgeInsets.only(bottom: 16),
                     decoration: BoxDecoration(
                       color: Color(0xFF15181c),
-                      border: Border.all(
-                        color: Color(0xFF272a2e),
-                      ),
+                      border: Border.all(color: Color(0xFF272a2e)),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Row(
@@ -203,9 +187,7 @@ class _CurrentWorkoutScreenState extends State<CurrentWorkoutScreen> {
                             });
                           },
                         ),
-                        const SizedBox(
-                          width: 10,
-                        ),
+                        const SizedBox(width: 10),
                         Text(
                           workout.exercise.name,
                           style: TextStyle(
@@ -238,3 +220,5 @@ class _CurrentWorkoutScreenState extends State<CurrentWorkoutScreen> {
 }
 // Current time - start time
 // convert the result to seconds
+//isActive =          true    false
+//isWorkoutFinished = false   true

@@ -4,11 +4,9 @@ import 'package:flutter/material.dart';
 
 class SessionTimer extends StatefulWidget {
   final int secondsPassed;
+  final bool isActive;
 
-  const new({
-    super.key,
-    required this.secondsPassed,
-  });
+  const new({super.key, required this.secondsPassed, this.isActive = true});
 
   @override
   State<SessionTimer> createState() => _SessionTimerState();
@@ -22,14 +20,15 @@ class _SessionTimerState extends State<SessionTimer> {
   void initState() {
     counter = widget.secondsPassed;
 
-    _timer = Timer.periodic(
-      const Duration(seconds: 1),
-      (timer) {
-        setState(() {
-          counter++;
-        });
-      },
-    );
+    if (!widget.isActive) {
+      return;
+    }
+
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {
+        counter++;
+      });
+    });
     super.initState();
   }
 
@@ -43,10 +42,7 @@ class _SessionTimerState extends State<SessionTimer> {
   Widget build(BuildContext context) {
     return Text(
       getFormattedTimer(counter),
-      style: TextStyle(
-        fontSize: 20,
-        fontWeight: FontWeight.bold,
-      ),
+      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
     );
   }
 

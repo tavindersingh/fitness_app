@@ -2,10 +2,11 @@ import 'package:drift/drift.dart';
 
 class DailySession extends Table {
   IntColumn get id => integer().autoIncrement()();
+
   IntColumn get planId => integer()();
-  BoolColumn get isFinished => boolean().withDefault(
-    const Constant(false),
-  )();
+
+  BoolColumn get isFinished => boolean().withDefault(const Constant(false))();
+
   DateTimeColumn get startedAt =>
       dateTime().nullable().withDefault(Constant(null))();
 
@@ -14,5 +15,6 @@ class DailySession extends Table {
 
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 
-  // int workoutDurationInSeconds =
+  IntColumn get workoutDurationInSeconds =>
+      integer().nullable().withDefault(Constant(0))();
 }

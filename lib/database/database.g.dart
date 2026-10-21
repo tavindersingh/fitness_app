@@ -522,6 +522,18 @@ class $DailySessionTable extends DailySession
     requiredDuringInsert: false,
     defaultValue: currentDateAndTime,
   );
+  static const VerificationMeta _workoutDurationInSecondsMeta =
+      const VerificationMeta('workoutDurationInSeconds');
+  @override
+  late final GeneratedColumn<int> workoutDurationInSeconds =
+      GeneratedColumn<int>(
+        'workout_duration_in_seconds',
+        aliasedName,
+        true,
+        type: DriftSqlType.int,
+        requiredDuringInsert: false,
+        defaultValue: Constant(0),
+      );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -530,6 +542,7 @@ class $DailySessionTable extends DailySession
     startedAt,
     finishedAt,
     createdAt,
+    workoutDurationInSeconds,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -578,6 +591,15 @@ class $DailySessionTable extends DailySession
         createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
       );
     }
+    if (data.containsKey('workout_duration_in_seconds')) {
+      context.handle(
+        _workoutDurationInSecondsMeta,
+        workoutDurationInSeconds.isAcceptableOrUnknown(
+          data['workout_duration_in_seconds']!,
+          _workoutDurationInSecondsMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -611,6 +633,10 @@ class $DailySessionTable extends DailySession
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
       )!,
+      workoutDurationInSeconds: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}workout_duration_in_seconds'],
+      ),
     );
   }
 
@@ -628,6 +654,7 @@ class DailySessionData extends DataClass
   final DateTime? startedAt;
   final DateTime? finishedAt;
   final DateTime createdAt;
+  final int? workoutDurationInSeconds;
   const DailySessionData({
     required this.id,
     required this.planId,
@@ -635,6 +662,7 @@ class DailySessionData extends DataClass
     this.startedAt,
     this.finishedAt,
     required this.createdAt,
+    this.workoutDurationInSeconds,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -649,6 +677,11 @@ class DailySessionData extends DataClass
       map['finished_at'] = Variable<DateTime>(finishedAt);
     }
     map['created_at'] = Variable<DateTime>(createdAt);
+    if (!nullToAbsent || workoutDurationInSeconds != null) {
+      map['workout_duration_in_seconds'] = Variable<int>(
+        workoutDurationInSeconds,
+      );
+    }
     return map;
   }
 
@@ -664,6 +697,9 @@ class DailySessionData extends DataClass
           ? const Value.absent()
           : Value(finishedAt),
       createdAt: Value(createdAt),
+      workoutDurationInSeconds: workoutDurationInSeconds == null && nullToAbsent
+          ? const Value.absent()
+          : Value(workoutDurationInSeconds),
     );
   }
 
@@ -679,6 +715,9 @@ class DailySessionData extends DataClass
       startedAt: serializer.fromJson<DateTime?>(json['startedAt']),
       finishedAt: serializer.fromJson<DateTime?>(json['finishedAt']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      workoutDurationInSeconds: serializer.fromJson<int?>(
+        json['workoutDurationInSeconds'],
+      ),
     );
   }
   @override
@@ -691,6 +730,9 @@ class DailySessionData extends DataClass
       'startedAt': serializer.toJson<DateTime?>(startedAt),
       'finishedAt': serializer.toJson<DateTime?>(finishedAt),
       'createdAt': serializer.toJson<DateTime>(createdAt),
+      'workoutDurationInSeconds': serializer.toJson<int?>(
+        workoutDurationInSeconds,
+      ),
     };
   }
 
@@ -701,6 +743,7 @@ class DailySessionData extends DataClass
     Value<DateTime?> startedAt = const Value.absent(),
     Value<DateTime?> finishedAt = const Value.absent(),
     DateTime? createdAt,
+    Value<int?> workoutDurationInSeconds = const Value.absent(),
   }) => DailySessionData(
     id: id ?? this.id,
     planId: planId ?? this.planId,
@@ -708,6 +751,9 @@ class DailySessionData extends DataClass
     startedAt: startedAt.present ? startedAt.value : this.startedAt,
     finishedAt: finishedAt.present ? finishedAt.value : this.finishedAt,
     createdAt: createdAt ?? this.createdAt,
+    workoutDurationInSeconds: workoutDurationInSeconds.present
+        ? workoutDurationInSeconds.value
+        : this.workoutDurationInSeconds,
   );
   DailySessionData copyWithCompanion(DailySessionCompanion data) {
     return DailySessionData(
@@ -721,6 +767,9 @@ class DailySessionData extends DataClass
           ? data.finishedAt.value
           : this.finishedAt,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      workoutDurationInSeconds: data.workoutDurationInSeconds.present
+          ? data.workoutDurationInSeconds.value
+          : this.workoutDurationInSeconds,
     );
   }
 
@@ -732,14 +781,22 @@ class DailySessionData extends DataClass
           ..write('isFinished: $isFinished, ')
           ..write('startedAt: $startedAt, ')
           ..write('finishedAt: $finishedAt, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('workoutDurationInSeconds: $workoutDurationInSeconds')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, planId, isFinished, startedAt, finishedAt, createdAt);
+  int get hashCode => Object.hash(
+    id,
+    planId,
+    isFinished,
+    startedAt,
+    finishedAt,
+    createdAt,
+    workoutDurationInSeconds,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -749,7 +806,8 @@ class DailySessionData extends DataClass
           other.isFinished == this.isFinished &&
           other.startedAt == this.startedAt &&
           other.finishedAt == this.finishedAt &&
-          other.createdAt == this.createdAt);
+          other.createdAt == this.createdAt &&
+          other.workoutDurationInSeconds == this.workoutDurationInSeconds);
 }
 
 class DailySessionCompanion extends UpdateCompanion<DailySessionData> {
@@ -759,6 +817,7 @@ class DailySessionCompanion extends UpdateCompanion<DailySessionData> {
   final Value<DateTime?> startedAt;
   final Value<DateTime?> finishedAt;
   final Value<DateTime> createdAt;
+  final Value<int?> workoutDurationInSeconds;
   const DailySessionCompanion({
     this.id = const Value.absent(),
     this.planId = const Value.absent(),
@@ -766,6 +825,7 @@ class DailySessionCompanion extends UpdateCompanion<DailySessionData> {
     this.startedAt = const Value.absent(),
     this.finishedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.workoutDurationInSeconds = const Value.absent(),
   });
   DailySessionCompanion.insert({
     this.id = const Value.absent(),
@@ -774,6 +834,7 @@ class DailySessionCompanion extends UpdateCompanion<DailySessionData> {
     this.startedAt = const Value.absent(),
     this.finishedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.workoutDurationInSeconds = const Value.absent(),
   }) : planId = Value(planId);
   static Insertable<DailySessionData> custom({
     Expression<int>? id,
@@ -782,6 +843,7 @@ class DailySessionCompanion extends UpdateCompanion<DailySessionData> {
     Expression<DateTime>? startedAt,
     Expression<DateTime>? finishedAt,
     Expression<DateTime>? createdAt,
+    Expression<int>? workoutDurationInSeconds,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -790,6 +852,8 @@ class DailySessionCompanion extends UpdateCompanion<DailySessionData> {
       if (startedAt != null) 'started_at': startedAt,
       if (finishedAt != null) 'finished_at': finishedAt,
       if (createdAt != null) 'created_at': createdAt,
+      if (workoutDurationInSeconds != null)
+        'workout_duration_in_seconds': workoutDurationInSeconds,
     });
   }
 
@@ -800,6 +864,7 @@ class DailySessionCompanion extends UpdateCompanion<DailySessionData> {
     Value<DateTime?>? startedAt,
     Value<DateTime?>? finishedAt,
     Value<DateTime>? createdAt,
+    Value<int?>? workoutDurationInSeconds,
   }) {
     return DailySessionCompanion(
       id: id ?? this.id,
@@ -808,6 +873,8 @@ class DailySessionCompanion extends UpdateCompanion<DailySessionData> {
       startedAt: startedAt ?? this.startedAt,
       finishedAt: finishedAt ?? this.finishedAt,
       createdAt: createdAt ?? this.createdAt,
+      workoutDurationInSeconds:
+          workoutDurationInSeconds ?? this.workoutDurationInSeconds,
     );
   }
 
@@ -832,6 +899,11 @@ class DailySessionCompanion extends UpdateCompanion<DailySessionData> {
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
+    if (workoutDurationInSeconds.present) {
+      map['workout_duration_in_seconds'] = Variable<int>(
+        workoutDurationInSeconds.value,
+      );
+    }
     return map;
   }
 
@@ -843,7 +915,8 @@ class DailySessionCompanion extends UpdateCompanion<DailySessionData> {
           ..write('isFinished: $isFinished, ')
           ..write('startedAt: $startedAt, ')
           ..write('finishedAt: $finishedAt, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('workoutDurationInSeconds: $workoutDurationInSeconds')
           ..write(')'))
         .toString();
   }
@@ -1554,6 +1627,7 @@ typedef $$DailySessionTableCreateCompanionBuilder =
       Value<DateTime?> startedAt,
       Value<DateTime?> finishedAt,
       Value<DateTime> createdAt,
+      Value<int?> workoutDurationInSeconds,
     });
 typedef $$DailySessionTableUpdateCompanionBuilder =
     DailySessionCompanion Function({
@@ -1563,6 +1637,7 @@ typedef $$DailySessionTableUpdateCompanionBuilder =
       Value<DateTime?> startedAt,
       Value<DateTime?> finishedAt,
       Value<DateTime> createdAt,
+      Value<int?> workoutDurationInSeconds,
     });
 
 class $$DailySessionTableFilterComposer
@@ -1601,6 +1676,11 @@ class $$DailySessionTableFilterComposer
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get workoutDurationInSeconds => $composableBuilder(
+    column: $table.workoutDurationInSeconds,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -1643,6 +1723,11 @@ class $$DailySessionTableOrderingComposer
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<int> get workoutDurationInSeconds => $composableBuilder(
+    column: $table.workoutDurationInSeconds,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$DailySessionTableAnnotationComposer
@@ -1675,6 +1760,11 @@ class $$DailySessionTableAnnotationComposer
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<int> get workoutDurationInSeconds => $composableBuilder(
+    column: $table.workoutDurationInSeconds,
+    builder: (column) => column,
+  );
 }
 
 class $$DailySessionTableTableManager
@@ -1714,6 +1804,7 @@ class $$DailySessionTableTableManager
                 Value<DateTime?> startedAt = const Value.absent(),
                 Value<DateTime?> finishedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
+                Value<int?> workoutDurationInSeconds = const Value.absent(),
               }) => DailySessionCompanion(
                 id: id,
                 planId: planId,
@@ -1721,6 +1812,7 @@ class $$DailySessionTableTableManager
                 startedAt: startedAt,
                 finishedAt: finishedAt,
                 createdAt: createdAt,
+                workoutDurationInSeconds: workoutDurationInSeconds,
               ),
           createCompanionCallback:
               ({
@@ -1730,6 +1822,7 @@ class $$DailySessionTableTableManager
                 Value<DateTime?> startedAt = const Value.absent(),
                 Value<DateTime?> finishedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
+                Value<int?> workoutDurationInSeconds = const Value.absent(),
               }) => DailySessionCompanion.insert(
                 id: id,
                 planId: planId,
@@ -1737,6 +1830,7 @@ class $$DailySessionTableTableManager
                 startedAt: startedAt,
                 finishedAt: finishedAt,
                 createdAt: createdAt,
+                workoutDurationInSeconds: workoutDurationInSeconds,
               ),
           withReferenceMapper: (p0) => p0
               .map(
