@@ -1,7 +1,14 @@
+import 'package:fitness_app/database/database.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class WorkoutHistoryListItem extends StatelessWidget {
-  const new({super.key});
+  final DailySessionData dailySession;
+
+  const new({
+    super.key,
+    required this.dailySession,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +49,9 @@ class WorkoutHistoryListItem extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      '21 Oct',
+                      DateFormat("dd MMM").format(
+                        dailySession.startedAt ?? DateTime.now(),
+                      ),
                       style: TextStyle(
                         color: Colors.white.withAlpha(110),
                         fontSize: 14,

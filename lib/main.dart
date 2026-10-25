@@ -8,6 +8,8 @@ void main() {
   // final database = AppDatabase();
   DatabaseProvider();
 
+  // fillMockSessionsData();
+
   runApp(const MyApp());
 }
 
