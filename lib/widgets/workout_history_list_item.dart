@@ -20,6 +20,7 @@ class WorkoutHistoryListItem extends StatelessWidget {
           color: Colors.white.withAlpha(50),
         ),
       ),
+      margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       child: Row(
         children: [
