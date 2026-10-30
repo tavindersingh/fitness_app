@@ -1,9 +1,11 @@
 import 'package:drift/drift.dart';
+import 'package:fitness_app/database/database.dart';
+import 'package:fitness_app/database/plan_table.dart';
 
 class DailySession extends Table {
   IntColumn get id => integer().autoIncrement()();
 
-  IntColumn get planId => integer()();
+  IntColumn get planId => integer().references(Plan, #id)();
 
   BoolColumn get isFinished => boolean().withDefault(const Constant(false))();
 

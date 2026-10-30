@@ -470,6 +470,9 @@ class $DailySessionTable extends DailySession
     false,
     type: DriftSqlType.int,
     requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES "plan" (id)',
+    ),
   );
   static const VerificationMeta _isFinishedMeta = const VerificationMeta(
     'isFinished',
@@ -951,6 +954,9 @@ class $SessionExerciseStatusTable extends SessionExerciseStatus
     false,
     type: DriftSqlType.int,
     requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES daily_session (id)',
+    ),
   );
   static const VerificationMeta _exerciseIdMeta = const VerificationMeta(
     'exerciseId',
@@ -1321,6 +1327,29 @@ typedef $$PlanTableUpdateCompanionBuilder = PlanCompanion Function({
   Value<String> name,
 });
 
+final class $$PlanTableReferences
+    extends BaseReferences<_$AppDatabase, $PlanTable, PlanData> {
+  $$PlanTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$DailySessionTable, List<DailySessionData>>
+  _dailySessionRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.dailySession,
+    aliasName: 'plan__id__daily_session__plan_id',
+  );
+
+  $$DailySessionTableProcessedTableManager get dailySessionRefs {
+    final manager = $$DailySessionTableTableManager(
+      $_db,
+      $_db.dailySession,
+    ).filter((f) => f.planId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_dailySessionRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
 class $$PlanTableFilterComposer extends Composer<_$AppDatabase, $PlanTable> {
   $$PlanTableFilterComposer({
     required super.$db,
@@ -1338,6 +1367,31 @@ class $$PlanTableFilterComposer extends Composer<_$AppDatabase, $PlanTable> {
     column: $table.name,
     builder: (column) => ColumnFilters(column),
   );
+
+  Expression<bool> dailySessionRefs(
+    Expression<bool> Function($$DailySessionTableFilterComposer f) f,
+  ) {
+    final $$DailySessionTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.dailySession,
+      getReferencedColumn: (t) => t.planId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DailySessionTableFilterComposer(
+            $db: $db,
+            $table: $db.dailySession,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$PlanTableOrderingComposer extends Composer<_$AppDatabase, $PlanTable> {
@@ -1373,6 +1427,31 @@ class $$PlanTableAnnotationComposer
 
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
+
+  Expression<T> dailySessionRefs<T extends Object>(
+    Expression<T> Function($$DailySessionTableAnnotationComposer a) f,
+  ) {
+    final $$DailySessionTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.dailySession,
+      getReferencedColumn: (t) => t.planId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DailySessionTableAnnotationComposer(
+            $db: $db,
+            $table: $db.dailySession,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$PlanTableTableManager
@@ -1386,9 +1465,9 @@ class $$PlanTableTableManager
           $$PlanTableAnnotationComposer,
           $$PlanTableCreateCompanionBuilder,
           $$PlanTableUpdateCompanionBuilder,
-          (PlanData, BaseReferences<_$AppDatabase, $PlanTable, PlanData>),
+          (PlanData, $$PlanTableReferences),
           PlanData,
-          PrefetchHooks Function()
+          PrefetchHooks Function({bool dailySessionRefs})
         > {
   $$PlanTableTableManager(_$AppDatabase db, $PlanTable table)
     : super(
@@ -1413,15 +1492,36 @@ class $$PlanTableTableManager
               .map(
                 (e) => (
                   e.readTable<$PlanTable, PlanData>(table),
-                  BaseReferences<_$AppDatabase, $PlanTable, PlanData>(
-                    db,
-                    table,
-                    e,
-                  ),
+                  $$PlanTableReferences(db, table, e),
                 ),
               )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({dailySessionRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [if (dailySessionRefs) db.dailySession],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (dailySessionRefs)
+                    await $_getPrefetchedData<
+                      PlanData,
+                      $PlanTable,
+                      DailySessionData
+                    >(
+                      currentTable: table,
+                      referencedTable: $$PlanTableReferences
+                          ._dailySessionRefsTable(db),
+                      managerFromTypedResult: (p0) =>
+                          $$PlanTableReferences(db, table, p0).dailySessionRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.planId == item.id),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
         ),
       );
 }
@@ -1436,9 +1536,9 @@ typedef $$PlanTableProcessedTableManager =
       $$PlanTableAnnotationComposer,
       $$PlanTableCreateCompanionBuilder,
       $$PlanTableUpdateCompanionBuilder,
-      (PlanData, BaseReferences<_$AppDatabase, $PlanTable, PlanData>),
+      (PlanData, $$PlanTableReferences),
       PlanData,
-      PrefetchHooks Function()
+      PrefetchHooks Function({bool dailySessionRefs})
     >;
 typedef $$WorkoutExerciseTableCreateCompanionBuilder =
     WorkoutExerciseCompanion Function({
@@ -1640,6 +1740,55 @@ typedef $$DailySessionTableUpdateCompanionBuilder =
       Value<int?> workoutDurationInSeconds,
     });
 
+final class $$DailySessionTableReferences
+    extends
+        BaseReferences<_$AppDatabase, $DailySessionTable, DailySessionData> {
+  $$DailySessionTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $PlanTable _planIdTable(_$AppDatabase db) =>
+      db.plan.createAlias('daily_session__plan_id__plan__id');
+
+  $$PlanTableProcessedTableManager get planId {
+    final $_column = $_itemColumn<int>('plan_id')!;
+
+    final manager = $$PlanTableTableManager(
+      $_db,
+      $_db.plan,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_planIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $SessionExerciseStatusTable,
+    List<SessionExerciseStatusData>
+  >
+  _sessionExerciseStatusRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.sessionExerciseStatus,
+        aliasName:
+            'daily_session__id__session_exercise_status__daily_session_id',
+      );
+
+  $$SessionExerciseStatusTableProcessedTableManager
+  get sessionExerciseStatusRefs {
+    final manager = $$SessionExerciseStatusTableTableManager(
+      $_db,
+      $_db.sessionExerciseStatus,
+    ).filter((f) => f.dailySessionId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _sessionExerciseStatusRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
 class $$DailySessionTableFilterComposer
     extends Composer<_$AppDatabase, $DailySessionTable> {
   $$DailySessionTableFilterComposer({
@@ -1651,11 +1800,6 @@ class $$DailySessionTableFilterComposer
   });
   ColumnFilters<int> get id => $composableBuilder(
     column: $table.id,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get planId => $composableBuilder(
-    column: $table.planId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -1683,6 +1827,55 @@ class $$DailySessionTableFilterComposer
     column: $table.workoutDurationInSeconds,
     builder: (column) => ColumnFilters(column),
   );
+
+  $$PlanTableFilterComposer get planId {
+    final $$PlanTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.planId,
+      referencedTable: $db.plan,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PlanTableFilterComposer(
+            $db: $db,
+            $table: $db.plan,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<bool> sessionExerciseStatusRefs(
+    Expression<bool> Function($$SessionExerciseStatusTableFilterComposer f) f,
+  ) {
+    final $$SessionExerciseStatusTableFilterComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.sessionExerciseStatus,
+          getReferencedColumn: (t) => t.dailySessionId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$SessionExerciseStatusTableFilterComposer(
+                $db: $db,
+                $table: $db.sessionExerciseStatus,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
 }
 
 class $$DailySessionTableOrderingComposer
@@ -1696,11 +1889,6 @@ class $$DailySessionTableOrderingComposer
   });
   ColumnOrderings<int> get id => $composableBuilder(
     column: $table.id,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get planId => $composableBuilder(
-    column: $table.planId,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -1728,6 +1916,29 @@ class $$DailySessionTableOrderingComposer
     column: $table.workoutDurationInSeconds,
     builder: (column) => ColumnOrderings(column),
   );
+
+  $$PlanTableOrderingComposer get planId {
+    final $$PlanTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.planId,
+      referencedTable: $db.plan,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PlanTableOrderingComposer(
+            $db: $db,
+            $table: $db.plan,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$DailySessionTableAnnotationComposer
@@ -1741,9 +1952,6 @@ class $$DailySessionTableAnnotationComposer
   });
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<int> get planId =>
-      $composableBuilder(column: $table.planId, builder: (column) => column);
 
   GeneratedColumn<bool> get isFinished => $composableBuilder(
     column: $table.isFinished,
@@ -1765,6 +1973,55 @@ class $$DailySessionTableAnnotationComposer
     column: $table.workoutDurationInSeconds,
     builder: (column) => column,
   );
+
+  $$PlanTableAnnotationComposer get planId {
+    final $$PlanTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.planId,
+      referencedTable: $db.plan,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PlanTableAnnotationComposer(
+            $db: $db,
+            $table: $db.plan,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<T> sessionExerciseStatusRefs<T extends Object>(
+    Expression<T> Function($$SessionExerciseStatusTableAnnotationComposer a) f,
+  ) {
+    final $$SessionExerciseStatusTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.sessionExerciseStatus,
+          getReferencedColumn: (t) => t.dailySessionId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$SessionExerciseStatusTableAnnotationComposer(
+                $db: $db,
+                $table: $db.sessionExerciseStatus,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
 }
 
 class $$DailySessionTableTableManager
@@ -1778,12 +2035,9 @@ class $$DailySessionTableTableManager
           $$DailySessionTableAnnotationComposer,
           $$DailySessionTableCreateCompanionBuilder,
           $$DailySessionTableUpdateCompanionBuilder,
-          (
-            DailySessionData,
-            BaseReferences<_$AppDatabase, $DailySessionTable, DailySessionData>,
-          ),
+          (DailySessionData, $$DailySessionTableReferences),
           DailySessionData,
-          PrefetchHooks Function()
+          PrefetchHooks Function({bool planId, bool sessionExerciseStatusRefs})
         > {
   $$DailySessionTableTableManager(_$AppDatabase db, $DailySessionTable table)
     : super(
@@ -1836,15 +2090,74 @@ class $$DailySessionTableTableManager
               .map(
                 (e) => (
                   e.readTable<$DailySessionTable, DailySessionData>(table),
-                  BaseReferences<
-                    _$AppDatabase,
-                    $DailySessionTable,
-                    DailySessionData
-                  >(db, table, e),
+                  $$DailySessionTableReferences(db, table, e),
                 ),
               )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback:
+              ({planId = false, sessionExerciseStatusRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (sessionExerciseStatusRefs) db.sessionExerciseStatus,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (planId) {
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.planId,
+                            referencedTable: $$DailySessionTableReferences
+                                ._planIdTable(db),
+                            referencedColumn: $$DailySessionTableReferences
+                                ._planIdTable(db)
+                                .id,
+                          ) as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (sessionExerciseStatusRefs)
+                        await $_getPrefetchedData<
+                          DailySessionData,
+                          $DailySessionTable,
+                          SessionExerciseStatusData
+                        >(
+                          currentTable: table,
+                          referencedTable: $$DailySessionTableReferences
+                              ._sessionExerciseStatusRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$DailySessionTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).sessionExerciseStatusRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.dailySessionId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
         ),
       );
 }
@@ -1859,12 +2172,9 @@ typedef $$DailySessionTableProcessedTableManager =
       $$DailySessionTableAnnotationComposer,
       $$DailySessionTableCreateCompanionBuilder,
       $$DailySessionTableUpdateCompanionBuilder,
-      (
-        DailySessionData,
-        BaseReferences<_$AppDatabase, $DailySessionTable, DailySessionData>,
-      ),
+      (DailySessionData, $$DailySessionTableReferences),
       DailySessionData,
-      PrefetchHooks Function()
+      PrefetchHooks Function({bool planId, bool sessionExerciseStatusRefs})
     >;
 typedef $$SessionExerciseStatusTableCreateCompanionBuilder =
     SessionExerciseStatusCompanion Function({
@@ -1883,6 +2193,39 @@ typedef $$SessionExerciseStatusTableUpdateCompanionBuilder =
       Value<DateTime> createdAt,
     });
 
+final class $$SessionExerciseStatusTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $SessionExerciseStatusTable,
+          SessionExerciseStatusData
+        > {
+  $$SessionExerciseStatusTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $DailySessionTable _dailySessionIdTable(_$AppDatabase db) =>
+      db.dailySession.createAlias(
+        'session_exercise_status__daily_session_id__daily_session__id',
+      );
+
+  $$DailySessionTableProcessedTableManager get dailySessionId {
+    final $_column = $_itemColumn<int>('daily_session_id')!;
+
+    final manager = $$DailySessionTableTableManager(
+      $_db,
+      $_db.dailySession,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_dailySessionIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
 class $$SessionExerciseStatusTableFilterComposer
     extends Composer<_$AppDatabase, $SessionExerciseStatusTable> {
   $$SessionExerciseStatusTableFilterComposer({
@@ -1894,11 +2237,6 @@ class $$SessionExerciseStatusTableFilterComposer
   });
   ColumnFilters<int> get id => $composableBuilder(
     column: $table.id,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get dailySessionId => $composableBuilder(
-    column: $table.dailySessionId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -1916,6 +2254,29 @@ class $$SessionExerciseStatusTableFilterComposer
     column: $table.createdAt,
     builder: (column) => ColumnFilters(column),
   );
+
+  $$DailySessionTableFilterComposer get dailySessionId {
+    final $$DailySessionTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.dailySessionId,
+      referencedTable: $db.dailySession,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DailySessionTableFilterComposer(
+            $db: $db,
+            $table: $db.dailySession,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$SessionExerciseStatusTableOrderingComposer
@@ -1929,11 +2290,6 @@ class $$SessionExerciseStatusTableOrderingComposer
   });
   ColumnOrderings<int> get id => $composableBuilder(
     column: $table.id,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get dailySessionId => $composableBuilder(
-    column: $table.dailySessionId,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -1951,6 +2307,29 @@ class $$SessionExerciseStatusTableOrderingComposer
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  $$DailySessionTableOrderingComposer get dailySessionId {
+    final $$DailySessionTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.dailySessionId,
+      referencedTable: $db.dailySession,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DailySessionTableOrderingComposer(
+            $db: $db,
+            $table: $db.dailySession,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$SessionExerciseStatusTableAnnotationComposer
@@ -1965,11 +2344,6 @@ class $$SessionExerciseStatusTableAnnotationComposer
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<int> get dailySessionId => $composableBuilder(
-    column: $table.dailySessionId,
-    builder: (column) => column,
-  );
-
   GeneratedColumn<int> get exerciseId => $composableBuilder(
     column: $table.exerciseId,
     builder: (column) => column,
@@ -1982,6 +2356,29 @@ class $$SessionExerciseStatusTableAnnotationComposer
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  $$DailySessionTableAnnotationComposer get dailySessionId {
+    final $$DailySessionTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.dailySessionId,
+      referencedTable: $db.dailySession,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DailySessionTableAnnotationComposer(
+            $db: $db,
+            $table: $db.dailySession,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$SessionExerciseStatusTableTableManager
@@ -1995,16 +2392,9 @@ class $$SessionExerciseStatusTableTableManager
           $$SessionExerciseStatusTableAnnotationComposer,
           $$SessionExerciseStatusTableCreateCompanionBuilder,
           $$SessionExerciseStatusTableUpdateCompanionBuilder,
-          (
-            SessionExerciseStatusData,
-            BaseReferences<
-              _$AppDatabase,
-              $SessionExerciseStatusTable,
-              SessionExerciseStatusData
-            >,
-          ),
+          (SessionExerciseStatusData, $$SessionExerciseStatusTableReferences),
           SessionExerciseStatusData,
-          PrefetchHooks Function()
+          PrefetchHooks Function({bool dailySessionId})
         > {
   $$SessionExerciseStatusTableTableManager(
     _$AppDatabase db,
@@ -2063,15 +2453,49 @@ class $$SessionExerciseStatusTableTableManager
                     $SessionExerciseStatusTable,
                     SessionExerciseStatusData
                   >(table),
-                  BaseReferences<
-                    _$AppDatabase,
-                    $SessionExerciseStatusTable,
-                    SessionExerciseStatusData
-                  >(db, table, e),
+                  $$SessionExerciseStatusTableReferences(db, table, e),
                 ),
               )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({dailySessionId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (dailySessionId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.dailySessionId,
+                        referencedTable: $$SessionExerciseStatusTableReferences
+                            ._dailySessionIdTable(db),
+                        referencedColumn: $$SessionExerciseStatusTableReferences
+                            ._dailySessionIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
         ),
       );
 }
@@ -2086,16 +2510,9 @@ typedef $$SessionExerciseStatusTableProcessedTableManager =
       $$SessionExerciseStatusTableAnnotationComposer,
       $$SessionExerciseStatusTableCreateCompanionBuilder,
       $$SessionExerciseStatusTableUpdateCompanionBuilder,
-      (
-        SessionExerciseStatusData,
-        BaseReferences<
-          _$AppDatabase,
-          $SessionExerciseStatusTable,
-          SessionExerciseStatusData
-        >,
-      ),
+      (SessionExerciseStatusData, $$SessionExerciseStatusTableReferences),
       SessionExerciseStatusData,
-      PrefetchHooks Function()
+      PrefetchHooks Function({bool dailySessionId})
     >;
 
 class $AppDatabaseManager {

@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:drift/drift.dart' hide Column;
 import 'package:fitness_app/database/database.dart';
 import 'package:fitness_app/database/database_provider.dart';
@@ -14,6 +16,13 @@ class HistoryScreen extends StatefulWidget {
 class _HistoryScreenState extends State<HistoryScreen> {
   List<DailySessionData> sessionsList = [];
   List<DailySessionData> previousSessionsList = [];
+
+  List<PlanData> planDataList = [];
+
+  Map<int, List<SessionExerciseStatusData>> exercisesDataBySessionId =
+      HashMap();
+
+  // Set<PlanData> planIdsSet = HashSet();
 
   Future<void> fetchPreviousWorkoutSessionsList() async {
     // fetch all previous sessions
@@ -39,6 +48,60 @@ class _HistoryScreenState extends State<HistoryScreen> {
               ..orderBy([(s) => OrderingTerm.desc(s.startedAt)])
               ..limit(50))
             .get();
+
+    for (DailySessionData session in thisWeek) {
+      int exisitingPlanDataIndex = planDataList.indexWhere(
+        (plan) => plan.id == session.planId,
+      );
+
+      if (exisitingPlanDataIndex != -1) {
+        continue;
+      }
+
+      PlanData? planData = await (database.select(
+        database.plan,
+      )..where((plan) => plan.id.equals(session.planId))).getSingleOrNull();
+
+      if (planData != null) {
+        planDataList.add(planData);
+      }
+    }
+
+    for (DailySessionData session in previous) {
+      int exisitingPlanDataIndex = planDataList.indexWhere(
+        (plan) => plan.id == session.planId,
+      );
+
+      if (exisitingPlanDataIndex != -1) {
+        continue;
+      }
+
+      PlanData? planData = await (database.select(
+        database.plan,
+      )..where((plan) => plan.id.equals(session.planId))).getSingleOrNull();
+
+      if (planData != null) {
+        planDataList.add(planData);
+      }
+    }
+
+    for (DailySessionData session in thisWeek) {
+      List<SessionExerciseStatusData> sessionExerciseData =
+          await (database.select(database.sessionExerciseStatus)
+                ..where(((status) => status.dailySessionId.equals(session.id))))
+              .get();
+
+      exercisesDataBySessionId[session.id] = sessionExerciseData;
+    }
+
+    for (DailySessionData session in previous) {
+      List<SessionExerciseStatusData> sessionExerciseData =
+          await (database.select(database.sessionExerciseStatus)
+                ..where(((status) => status.dailySessionId.equals(session.id))))
+              .get();
+
+      exercisesDataBySessionId[session.id] = sessionExerciseData;
+    }
 
     if (!mounted) return;
     setState(() {
@@ -103,6 +166,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
                             .map(
                               (item) => WorkoutHistoryListItem(
                                 dailySession: item,
+                                planData: planDataList.firstWhere(
+                                  (plan) => plan.id == item.planId,
+                                ),
+                                sessionExercisesList:
+                                    exercisesDataBySessionId[item.id] ?? [],
                               ),
                             )
                             .toList(),
@@ -137,6 +205,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
                             .map(
                               (item) => WorkoutHistoryListItem(
                                 dailySession: item,
+                                planData: planDataList.firstWhere(
+                                  (plan) => plan.id == item.planId,
+                                ),
+                                sessionExercisesList:
+                                    exercisesDataBySessionId[item.id] ?? [],
                               ),
                             )
                             .toList(),

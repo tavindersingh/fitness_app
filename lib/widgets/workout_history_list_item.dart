@@ -1,13 +1,19 @@
+import 'dart:math';
+
 import 'package:fitness_app/database/database.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class WorkoutHistoryListItem extends StatelessWidget {
   final DailySessionData dailySession;
+  final PlanData planData;
+  final List<SessionExerciseStatusData> sessionExercisesList;
 
   const new({
     super.key,
     required this.dailySession,
+    required this.planData,
+    required this.sessionExercisesList,
   });
 
   @override
@@ -42,7 +48,7 @@ class WorkoutHistoryListItem extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      "Upper Chest Workout",
+                      planData.name,
                       style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -73,7 +79,7 @@ class WorkoutHistoryListItem extends StatelessWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          "48 min",
+                          "${calculateSessionTime() ~/ 60} min",
                           style: TextStyle(
                             color: Colors.white.withAlpha(110),
                             fontWeight: FontWeight.bold,
@@ -84,7 +90,7 @@ class WorkoutHistoryListItem extends StatelessWidget {
                     ),
                     const SizedBox(width: 12),
                     Text(
-                      '6 exercises',
+                      '${sessionExercisesList.length} exercises',
                       style: TextStyle(
                         color: Colors.white.withAlpha(110),
                         fontWeight: FontWeight.bold,
@@ -107,5 +113,16 @@ class WorkoutHistoryListItem extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  int calculateSessionTime() {
+    int totalExercises = sessionExercisesList.length; // 3
+    int singleExerciseTime = 10 * 60; // 10 minutes
+
+    int breakBetweenExercise =
+        Random().nextInt(500) + 500; // 5 minutes to 10 minutes
+
+    return totalExercises * singleExerciseTime +
+        (totalExercises - 1) * breakBetweenExercise;
   }
 }
