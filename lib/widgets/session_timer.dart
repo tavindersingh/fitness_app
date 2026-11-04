@@ -67,12 +67,3 @@ class _SessionTimerState extends State<SessionTimer> {
     return "$formattedMinutes:$formattedSeconds";
   }
 }
-
-// starttime of exercise
-// what is the current time
-// currentTime - startTime = start Timer from here
-// 06:00 PM -> Start time
-// 06:10 PM -> Current Time
-// 10:00
-
-// Hello Shravin!

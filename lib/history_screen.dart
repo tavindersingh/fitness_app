@@ -22,8 +22,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Map<int, List<SessionExerciseStatusData>> exercisesDataBySessionId =
       HashMap();
 
-  // Set<PlanData> planIdsSet = HashSet();
-
   Future<void> fetchPreviousWorkoutSessionsList() async {
     // fetch all previous sessions
     final databaseProvider = DatabaseProvider();
@@ -39,6 +37,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final thisWeek =
         await (database.select(database.dailySession)
               ..where((s) => s.startedAt.isBiggerOrEqualValue(startOfWeek))
+              ..where((s) => s.isFinished.equals(true))
               ..orderBy([(s) => OrderingTerm.desc(s.startedAt)]))
             .get();
 

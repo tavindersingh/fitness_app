@@ -6,6 +6,7 @@ class Exercise {
   final String imageUrl;
   final List<String> instructions;
   final String featureImageUrl;
+  final bool isFinished;
 
   Exercise({
     required this.id,
@@ -15,5 +16,6 @@ class Exercise {
     required this.imageUrl,
     required this.instructions,
     required this.featureImageUrl,
+    this.isFinished = false,
   });
 }

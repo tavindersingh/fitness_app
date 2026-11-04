@@ -1,5 +1,4 @@
 import 'package:drift/drift.dart';
-import 'package:fitness_app/database/database.dart';
 import 'package:fitness_app/database/plan_table.dart';
 
 class DailySession extends Table {
