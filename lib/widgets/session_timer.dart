@@ -18,23 +18,49 @@ class _SessionTimerState extends State<SessionTimer> {
 
   @override
   void initState() {
+    super.initState();
+
     counter = widget.secondsPassed;
 
-    if (!widget.isActive) {
-      return;
+    if (widget.isActive) {
+      startTimer();
     }
+  }
 
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      setState(() {
-        counter++;
-      });
-    });
-    super.initState();
+  void startTimer() {
+    if (_timer?.isActive ?? false) return;
+
+    _timer = Timer.periodic(
+      const Duration(seconds: 1),
+      (timer) {
+        setState(() {
+          counter++;
+        });
+      },
+    );
+  }
+
+  void stopTimer() {
+    _timer?.cancel();
+    _timer = null;
+  }
+
+  @override
+  void didUpdateWidget(covariant SessionTimer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.isActive != widget.isActive) {
+      if (widget.isActive) {
+        startTimer();
+      } else {
+        stopTimer();
+      }
+    }
   }
 
   @override
   void dispose() {
-    _timer?.cancel();
+    stopTimer();
     super.dispose();
   }
 

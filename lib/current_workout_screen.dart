@@ -127,7 +127,18 @@ class _CurrentWorkoutScreenState extends State<CurrentWorkoutScreen> {
     DateTime now = DateTime.now();
     Duration difference = now.difference(
       widget.dailySessionData.startedAt ?? now,
-    );
+    ); // this was correct when session is not finished
+
+    if (isWorkoutFinished && widget.dailySessionData.finishedAt != null) {
+      difference = widget.dailySessionData.finishedAt!.difference(
+        widget.dailySessionData.startedAt ?? now,
+      );
+
+      // widget.dailySessionData.finishedAt is null
+      // difference function will never execute
+      // difference varialble will be null
+      //
+    }
 
     secondsPassed = difference.inSeconds;
   }
@@ -177,15 +188,17 @@ class _CurrentWorkoutScreenState extends State<CurrentWorkoutScreen> {
                       children: [
                         AppCheckbox(
                           isSelected: workout.isCompleted,
-                          onClick: (value) async {
-                            await toggleExerciseStatus(
-                              workoutList[index].exercise.id,
-                              value,
-                            );
-                            setState(() {
-                              workoutList[index].isCompleted = value;
-                            });
-                          },
+                          onClick: isWorkoutFinished
+                              ? (value) {}
+                              : (value) async {
+                                  await toggleExerciseStatus(
+                                    workoutList[index].exercise.id,
+                                    value,
+                                  );
+                                  setState(() {
+                                    workoutList[index].isCompleted = value;
+                                  });
+                                },
                         ),
                         const SizedBox(width: 10),
                         Text(
