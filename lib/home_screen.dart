@@ -4,6 +4,7 @@ import 'package:fitness_app/database/database_provider.dart';
 import 'package:fitness_app/select_session_screen.dart';
 import 'package:fitness_app/widgets/app_button.dart';
 import 'package:fitness_app/widgets/home_workout.dart';
+import 'package:fitness_app/widgets/log_actions.dart';
 import 'package:fitness_app/widgets/user_stat.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -82,6 +83,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           },
                         ),
                   UserStat(),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  LogActions(),
                   SizedBox(
                     height: 20,
                   ),
