@@ -20,6 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
   PlanData? selectedWorkout;
   DailySessionData? dailySession;
   List<SessionExerciseStatusData> sessionExerciseStatusList = [];
+  WeightData? weightData;
 
   bool isLoading = true;
 
@@ -129,6 +130,11 @@ class _HomeScreenState extends State<HomeScreen> {
     final databaseProvider = DatabaseProvider();
     final database = databaseProvider.database;
 
+    final previousWeight =
+        await (database.select(database.weight)
+              ..orderBy([(weight) => OrderingTerm.desc(weight.loggedAt)]))
+            .getSingleOrNull();
+
     String currentDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
 
     DailySessionData? data =
@@ -168,6 +174,7 @@ class _HomeScreenState extends State<HomeScreen> {
       dailySession = data;
       selectedWorkout = planData;
       sessionExerciseStatusList = sessionExerciseStatusDataList;
+      weightData = previousWeight;
       isLoading = false;
     });
   }

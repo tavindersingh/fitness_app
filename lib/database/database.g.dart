@@ -1296,6 +1296,493 @@ class SessionExerciseStatusCompanion
   }
 }
 
+class $WeightTable extends Weight with TableInfo<$WeightTable, WeightData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $WeightTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _valueMeta = const VerificationMeta('value');
+  @override
+  late final GeneratedColumn<double> value = GeneratedColumn<double>(
+    'value',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _loggedAtMeta = const VerificationMeta(
+    'loggedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> loggedAt = GeneratedColumn<DateTime>(
+    'logged_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, value, loggedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'weight';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<WeightData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('value')) {
+      context.handle(
+        _valueMeta,
+        value.isAcceptableOrUnknown(data['value']!, _valueMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_valueMeta);
+    }
+    if (data.containsKey('logged_at')) {
+      context.handle(
+        _loggedAtMeta,
+        loggedAt.isAcceptableOrUnknown(data['logged_at']!, _loggedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  WeightData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return WeightData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      value: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}value'],
+      )!,
+      loggedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}logged_at'],
+      )!,
+    );
+  }
+
+  @override
+  $WeightTable createAlias(String alias) {
+    return $WeightTable(attachedDatabase, alias);
+  }
+}
+
+class WeightData extends DataClass implements Insertable<WeightData> {
+  final int id;
+  final double value;
+  final DateTime loggedAt;
+  const WeightData({
+    required this.id,
+    required this.value,
+    required this.loggedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['value'] = Variable<double>(value);
+    map['logged_at'] = Variable<DateTime>(loggedAt);
+    return map;
+  }
+
+  WeightCompanion toCompanion(bool nullToAbsent) {
+    return WeightCompanion(
+      id: Value(id),
+      value: Value(value),
+      loggedAt: Value(loggedAt),
+    );
+  }
+
+  factory WeightData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return WeightData(
+      id: serializer.fromJson<int>(json['id']),
+      value: serializer.fromJson<double>(json['value']),
+      loggedAt: serializer.fromJson<DateTime>(json['loggedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'value': serializer.toJson<double>(value),
+      'loggedAt': serializer.toJson<DateTime>(loggedAt),
+    };
+  }
+
+  WeightData copyWith({int? id, double? value, DateTime? loggedAt}) =>
+      WeightData(
+        id: id ?? this.id,
+        value: value ?? this.value,
+        loggedAt: loggedAt ?? this.loggedAt,
+      );
+  WeightData copyWithCompanion(WeightCompanion data) {
+    return WeightData(
+      id: data.id.present ? data.id.value : this.id,
+      value: data.value.present ? data.value.value : this.value,
+      loggedAt: data.loggedAt.present ? data.loggedAt.value : this.loggedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('WeightData(')
+          ..write('id: $id, ')
+          ..write('value: $value, ')
+          ..write('loggedAt: $loggedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, value, loggedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is WeightData &&
+          other.id == this.id &&
+          other.value == this.value &&
+          other.loggedAt == this.loggedAt);
+}
+
+class WeightCompanion extends UpdateCompanion<WeightData> {
+  final Value<int> id;
+  final Value<double> value;
+  final Value<DateTime> loggedAt;
+  const WeightCompanion({
+    this.id = const Value.absent(),
+    this.value = const Value.absent(),
+    this.loggedAt = const Value.absent(),
+  });
+  WeightCompanion.insert({
+    this.id = const Value.absent(),
+    required double value,
+    this.loggedAt = const Value.absent(),
+  }) : value = Value(value);
+  static Insertable<WeightData> custom({
+    Expression<int>? id,
+    Expression<double>? value,
+    Expression<DateTime>? loggedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (value != null) 'value': value,
+      if (loggedAt != null) 'logged_at': loggedAt,
+    });
+  }
+
+  WeightCompanion copyWith({
+    Value<int>? id,
+    Value<double>? value,
+    Value<DateTime>? loggedAt,
+  }) {
+    return WeightCompanion(
+      id: id ?? this.id,
+      value: value ?? this.value,
+      loggedAt: loggedAt ?? this.loggedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (value.present) {
+      map['value'] = Variable<double>(value.value);
+    }
+    if (loggedAt.present) {
+      map['logged_at'] = Variable<DateTime>(loggedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('WeightCompanion(')
+          ..write('id: $id, ')
+          ..write('value: $value, ')
+          ..write('loggedAt: $loggedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $StepsTable extends Steps with TableInfo<$StepsTable, Step> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $StepsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _valueMeta = const VerificationMeta('value');
+  @override
+  late final GeneratedColumn<int> value = GeneratedColumn<int>(
+    'value',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _loggedAtMeta = const VerificationMeta(
+    'loggedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> loggedAt = GeneratedColumn<DateTime>(
+    'logged_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, value, loggedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'steps';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Step> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('value')) {
+      context.handle(
+        _valueMeta,
+        value.isAcceptableOrUnknown(data['value']!, _valueMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_valueMeta);
+    }
+    if (data.containsKey('logged_at')) {
+      context.handle(
+        _loggedAtMeta,
+        loggedAt.isAcceptableOrUnknown(data['logged_at']!, _loggedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Step map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Step(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      value: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}value'],
+      )!,
+      loggedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}logged_at'],
+      )!,
+    );
+  }
+
+  @override
+  $StepsTable createAlias(String alias) {
+    return $StepsTable(attachedDatabase, alias);
+  }
+}
+
+class Step extends DataClass implements Insertable<Step> {
+  final int id;
+  final int value;
+  final DateTime loggedAt;
+  const Step({required this.id, required this.value, required this.loggedAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['value'] = Variable<int>(value);
+    map['logged_at'] = Variable<DateTime>(loggedAt);
+    return map;
+  }
+
+  StepsCompanion toCompanion(bool nullToAbsent) {
+    return StepsCompanion(
+      id: Value(id),
+      value: Value(value),
+      loggedAt: Value(loggedAt),
+    );
+  }
+
+  factory Step.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Step(
+      id: serializer.fromJson<int>(json['id']),
+      value: serializer.fromJson<int>(json['value']),
+      loggedAt: serializer.fromJson<DateTime>(json['loggedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'value': serializer.toJson<int>(value),
+      'loggedAt': serializer.toJson<DateTime>(loggedAt),
+    };
+  }
+
+  Step copyWith({int? id, int? value, DateTime? loggedAt}) => Step(
+    id: id ?? this.id,
+    value: value ?? this.value,
+    loggedAt: loggedAt ?? this.loggedAt,
+  );
+  Step copyWithCompanion(StepsCompanion data) {
+    return Step(
+      id: data.id.present ? data.id.value : this.id,
+      value: data.value.present ? data.value.value : this.value,
+      loggedAt: data.loggedAt.present ? data.loggedAt.value : this.loggedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Step(')
+          ..write('id: $id, ')
+          ..write('value: $value, ')
+          ..write('loggedAt: $loggedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, value, loggedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Step &&
+          other.id == this.id &&
+          other.value == this.value &&
+          other.loggedAt == this.loggedAt);
+}
+
+class StepsCompanion extends UpdateCompanion<Step> {
+  final Value<int> id;
+  final Value<int> value;
+  final Value<DateTime> loggedAt;
+  const StepsCompanion({
+    this.id = const Value.absent(),
+    this.value = const Value.absent(),
+    this.loggedAt = const Value.absent(),
+  });
+  StepsCompanion.insert({
+    this.id = const Value.absent(),
+    required int value,
+    this.loggedAt = const Value.absent(),
+  }) : value = Value(value);
+  static Insertable<Step> custom({
+    Expression<int>? id,
+    Expression<int>? value,
+    Expression<DateTime>? loggedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (value != null) 'value': value,
+      if (loggedAt != null) 'logged_at': loggedAt,
+    });
+  }
+
+  StepsCompanion copyWith({
+    Value<int>? id,
+    Value<int>? value,
+    Value<DateTime>? loggedAt,
+  }) {
+    return StepsCompanion(
+      id: id ?? this.id,
+      value: value ?? this.value,
+      loggedAt: loggedAt ?? this.loggedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (value.present) {
+      map['value'] = Variable<int>(value.value);
+    }
+    if (loggedAt.present) {
+      map['logged_at'] = Variable<DateTime>(loggedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StepsCompanion(')
+          ..write('id: $id, ')
+          ..write('value: $value, ')
+          ..write('loggedAt: $loggedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -1306,6 +1793,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $DailySessionTable dailySession = $DailySessionTable(this);
   late final $SessionExerciseStatusTable sessionExerciseStatus =
       $SessionExerciseStatusTable(this);
+  late final $WeightTable weight = $WeightTable(this);
+  late final $StepsTable steps = $StepsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -1315,6 +1804,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     workoutExercise,
     dailySession,
     sessionExerciseStatus,
+    weight,
+    steps,
   ];
 }
 
@@ -1504,18 +1995,19 @@ class $$PlanTableTableManager
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (dailySessionRefs)
-                    await $_getPrefetchedData<
+                    await $_getPrefetchedDataByColumns<
                       PlanData,
                       $PlanTable,
-                      DailySessionData
+                      DailySessionData,
+                      $DailySessionTable
                     >(
                       currentTable: table,
                       referencedTable: $$PlanTableReferences
                           ._dailySessionRefsTable(db),
                       managerFromTypedResult: (p0) =>
                           $$PlanTableReferences(db, table, p0).dailySessionRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where((e) => e.planId == item.id),
+                      currentColumn: 'id',
+                      referencedColumn: 'plan_id',
                       typedResults: items,
                     ),
                 ];
@@ -2134,10 +2626,11 @@ class $$DailySessionTableTableManager
                   getPrefetchedDataCallback: (items) async {
                     return [
                       if (sessionExerciseStatusRefs)
-                        await $_getPrefetchedData<
+                        await $_getPrefetchedDataByColumns<
                           DailySessionData,
                           $DailySessionTable,
-                          SessionExerciseStatusData
+                          SessionExerciseStatusData,
+                          $SessionExerciseStatusTable
                         >(
                           currentTable: table,
                           referencedTable: $$DailySessionTableReferences
@@ -2148,10 +2641,8 @@ class $$DailySessionTableTableManager
                                 table,
                                 p0,
                               ).sessionExerciseStatusRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.dailySessionId == item.id,
-                              ),
+                          currentColumn: 'id',
+                          referencedColumn: 'daily_session_id',
                           typedResults: items,
                         ),
                     ];
@@ -2514,6 +3005,304 @@ typedef $$SessionExerciseStatusTableProcessedTableManager =
       SessionExerciseStatusData,
       PrefetchHooks Function({bool dailySessionId})
     >;
+typedef $$WeightTableCreateCompanionBuilder = WeightCompanion Function({
+  Value<int> id,
+  required double value,
+  Value<DateTime> loggedAt,
+});
+typedef $$WeightTableUpdateCompanionBuilder = WeightCompanion Function({
+  Value<int> id,
+  Value<double> value,
+  Value<DateTime> loggedAt,
+});
+
+class $$WeightTableFilterComposer
+    extends Composer<_$AppDatabase, $WeightTable> {
+  $$WeightTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get loggedAt => $composableBuilder(
+    column: $table.loggedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$WeightTableOrderingComposer
+    extends Composer<_$AppDatabase, $WeightTable> {
+  $$WeightTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get loggedAt => $composableBuilder(
+    column: $table.loggedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$WeightTableAnnotationComposer
+    extends Composer<_$AppDatabase, $WeightTable> {
+  $$WeightTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<double> get value =>
+      $composableBuilder(column: $table.value, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get loggedAt =>
+      $composableBuilder(column: $table.loggedAt, builder: (column) => column);
+}
+
+class $$WeightTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $WeightTable,
+          WeightData,
+          $$WeightTableFilterComposer,
+          $$WeightTableOrderingComposer,
+          $$WeightTableAnnotationComposer,
+          $$WeightTableCreateCompanionBuilder,
+          $$WeightTableUpdateCompanionBuilder,
+          (WeightData, BaseReferences<_$AppDatabase, $WeightTable, WeightData>),
+          WeightData,
+          PrefetchHooks Function()
+        > {
+  $$WeightTableTableManager(_$AppDatabase db, $WeightTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$WeightTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$WeightTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$WeightTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<double> value = const Value.absent(),
+            Value<DateTime> loggedAt = const Value.absent(),
+          }) => WeightCompanion(id: id, value: value, loggedAt: loggedAt),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required double value,
+                Value<DateTime> loggedAt = const Value.absent(),
+              }) => WeightCompanion.insert(
+                id: id,
+                value: value,
+                loggedAt: loggedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$WeightTable, WeightData>(table),
+                  BaseReferences<_$AppDatabase, $WeightTable, WeightData>(
+                    db,
+                    table,
+                    e,
+                  ),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$WeightTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $WeightTable,
+      WeightData,
+      $$WeightTableFilterComposer,
+      $$WeightTableOrderingComposer,
+      $$WeightTableAnnotationComposer,
+      $$WeightTableCreateCompanionBuilder,
+      $$WeightTableUpdateCompanionBuilder,
+      (WeightData, BaseReferences<_$AppDatabase, $WeightTable, WeightData>),
+      WeightData,
+      PrefetchHooks Function()
+    >;
+typedef $$StepsTableCreateCompanionBuilder = StepsCompanion Function({
+  Value<int> id,
+  required int value,
+  Value<DateTime> loggedAt,
+});
+typedef $$StepsTableUpdateCompanionBuilder = StepsCompanion Function({
+  Value<int> id,
+  Value<int> value,
+  Value<DateTime> loggedAt,
+});
+
+class $$StepsTableFilterComposer extends Composer<_$AppDatabase, $StepsTable> {
+  $$StepsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get loggedAt => $composableBuilder(
+    column: $table.loggedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$StepsTableOrderingComposer
+    extends Composer<_$AppDatabase, $StepsTable> {
+  $$StepsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get loggedAt => $composableBuilder(
+    column: $table.loggedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$StepsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $StepsTable> {
+  $$StepsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get value =>
+      $composableBuilder(column: $table.value, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get loggedAt =>
+      $composableBuilder(column: $table.loggedAt, builder: (column) => column);
+}
+
+class $$StepsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $StepsTable,
+          Step,
+          $$StepsTableFilterComposer,
+          $$StepsTableOrderingComposer,
+          $$StepsTableAnnotationComposer,
+          $$StepsTableCreateCompanionBuilder,
+          $$StepsTableUpdateCompanionBuilder,
+          (Step, BaseReferences<_$AppDatabase, $StepsTable, Step>),
+          Step,
+          PrefetchHooks Function()
+        > {
+  $$StepsTableTableManager(_$AppDatabase db, $StepsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$StepsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$StepsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$StepsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<int> value = const Value.absent(),
+            Value<DateTime> loggedAt = const Value.absent(),
+          }) => StepsCompanion(id: id, value: value, loggedAt: loggedAt),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required int value,
+            Value<DateTime> loggedAt = const Value.absent(),
+          }) => StepsCompanion.insert(id: id, value: value, loggedAt: loggedAt),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$StepsTable, Step>(table),
+                  BaseReferences<_$AppDatabase, $StepsTable, Step>(
+                    db,
+                    table,
+                    e,
+                  ),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$StepsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $StepsTable,
+      Step,
+      $$StepsTableFilterComposer,
+      $$StepsTableOrderingComposer,
+      $$StepsTableAnnotationComposer,
+      $$StepsTableCreateCompanionBuilder,
+      $$StepsTableUpdateCompanionBuilder,
+      (Step, BaseReferences<_$AppDatabase, $StepsTable, Step>),
+      Step,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -2525,4 +3314,8 @@ class $AppDatabaseManager {
       $$DailySessionTableTableManager(_db, _db.dailySession);
   $$SessionExerciseStatusTableTableManager get sessionExerciseStatus =>
       $$SessionExerciseStatusTableTableManager(_db, _db.sessionExerciseStatus);
+  $$WeightTableTableManager get weight =>
+      $$WeightTableTableManager(_db, _db.weight);
+  $$StepsTableTableManager get steps =>
+      $$StepsTableTableManager(_db, _db.steps);
 }

@@ -1,3 +1,6 @@
+import 'package:drift/drift.dart' hide Column;
+import 'package:fitness_app/database/database.dart';
+import 'package:fitness_app/database/database_provider.dart';
 import 'package:fitness_app/widgets/app_button.dart';
 import 'package:flutter/material.dart';
 
@@ -39,6 +42,45 @@ class _LogWeightWidgetState extends State<LogWeightWidget> {
     setState(() {
       newWeight -= step;
     });
+  }
+
+  Future<void> logWeight() async {
+    final databaseProvider = DatabaseProvider();
+    final database = databaseProvider.database;
+
+    DateTime now = DateTime.now();
+
+    DateTime onlyDate = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    );
+
+    final existingTodaysWeight =
+        await (database.select(
+              database.weight,
+            )..where(
+              (weight) => weight.loggedAt.isBiggerOrEqualValue(onlyDate),
+            ))
+            .getSingleOrNull();
+
+    if (existingTodaysWeight != null) {
+      await (database.update(database.weight)
+            ..where((weight) => weight.loggedAt.isBiggerOrEqualValue(onlyDate)))
+          .write(
+            WeightCompanion(
+              value: Value(newWeight),
+            ),
+          );
+    } else {
+      await database
+          .into(database.weight)
+          .insert(
+            WeightCompanion(
+              value: Value(newWeight),
+            ),
+          );
+    }
   }
 
   @override
@@ -155,7 +197,7 @@ class _LogWeightWidgetState extends State<LogWeightWidget> {
           ),
           AppButton(
             label: 'Save',
-            onPressed: () {},
+            onPressed: logWeight,
           ),
         ],
       ),
