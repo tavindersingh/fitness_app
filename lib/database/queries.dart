@@ -112,7 +112,7 @@ Future<void> saveTodaysWeight(
 }
 
 /// Today's step count, or null if none has been logged today.
-Future<Step?> findTodaysSteps(AppDatabase database, {DateTime? now}) {
+Future<StepsData?> findTodaysSteps(AppDatabase database, {DateTime? now}) {
   final today = now ?? DateTime.now();
   return (database.select(database.steps)
         ..where((s) => s.loggedAt.isBiggerOrEqualValue(startOfDay(today)))
@@ -177,4 +177,105 @@ Future<void> finishSession(
       ),
     );
   });
+}
+
+/// How much the weight changed over the last 7 days, or null if there is
+/// nothing to compare against.
+///
+/// Compares the latest entry with the last entry logged before the 7-day
+/// window. If nothing was logged before the window, the earliest entry inside
+/// it is used instead.
+Future<double?> findWeeklyWeightChange(
+  AppDatabase database, {
+  DateTime? now,
+}) async {
+  final latest = await findLatestWeight(database);
+  if (latest == null) return null;
+
+  final today = now ?? DateTime.now();
+  final windowStart = startOfDay(today.subtract(const Duration(days: 6)));
+
+  final beforeWindow =
+      await (database.select(database.weight)
+            ..where((w) => w.loggedAt.isSmallerThanValue(windowStart))
+            ..orderBy([(w) => OrderingTerm.desc(w.loggedAt)])
+            ..limit(1))
+          .getSingleOrNull();
+
+  final baseline =
+      beforeWindow ??
+      await (database.select(database.weight)
+            ..where((w) => w.loggedAt.isBiggerOrEqualValue(windowStart))
+            ..orderBy([(w) => OrderingTerm.asc(w.loggedAt)])
+            ..limit(1))
+          .getSingleOrNull();
+
+  if (baseline == null || baseline.id == latest.id) return null;
+
+  return ((latest.value - baseline.value) * 10).roundToDouble() / 10;
+}
+
+/// The most recent [count] weight entries, oldest first (for charting).
+Future<List<WeightData>> findRecentWeights(
+  AppDatabase database, {
+  int count = 10,
+}) async {
+  final newestFirst =
+      await (database.select(database.weight)
+            ..orderBy([(w) => OrderingTerm.desc(w.loggedAt)])
+            ..limit(count))
+          .get();
+  return newestFirst.reversed.toList();
+}
+
+/// Number of finished workouts in one week (weeks start on Monday).
+class WeeklyWorkoutCount {
+  final DateTime weekStart;
+  final int count;
+
+  const WeeklyWorkoutCount(this.weekStart, this.count);
+}
+
+/// Finished workouts per week for the last [weeks] weeks, oldest first.
+/// The last entry is the current week.
+Future<List<WeeklyWorkoutCount>> findWorkoutsPerWeek(
+  AppDatabase database, {
+  int weeks = 8,
+  DateTime? now,
+}) async {
+  final today = startOfDay(now ?? DateTime.now());
+  final thisWeekStart = DateTime(
+    today.year,
+    today.month,
+    today.day - (today.weekday - 1),
+  );
+  final weekStarts = List.generate(
+    weeks,
+    (i) => DateTime(
+      thisWeekStart.year,
+      thisWeekStart.month,
+      thisWeekStart.day - 7 * (weeks - 1 - i),
+    ),
+  );
+
+  final sessions =
+      await (database.select(database.dailySession)
+            ..where((s) => s.isFinished.equals(true))
+            ..where((s) => s.createdAt.isBiggerOrEqualValue(weekStarts.first)))
+          .get();
+
+  final counts = List.filled(weeks, 0);
+  for (final session in sessions) {
+    for (var i = weeks - 1; i >= 0; i--) {
+      if (!session.createdAt.isBefore(weekStarts[i])) {
+        counts[i]++;
+        break;
+      }
+    }
+  }
+
+  return [
+    for (var i = 0; i < weeks; i++)
+      WeeklyWorkoutCount(weekStarts[i], counts[i]),
+  ];
 }

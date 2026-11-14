@@ -1542,7 +1542,7 @@ class WeightCompanion extends UpdateCompanion<WeightData> {
   }
 }
 
-class $StepsTable extends Steps with TableInfo<$StepsTable, Step> {
+class $StepsTable extends Steps with TableInfo<$StepsTable, StepsData> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -1590,7 +1590,7 @@ class $StepsTable extends Steps with TableInfo<$StepsTable, Step> {
   static const String $name = 'steps';
   @override
   VerificationContext validateIntegrity(
-    Insertable<Step> instance, {
+    Insertable<StepsData> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -1618,9 +1618,9 @@ class $StepsTable extends Steps with TableInfo<$StepsTable, Step> {
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  Step map(Map<String, dynamic> data, {String? tablePrefix}) {
+  StepsData map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return Step(
+    return StepsData(
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}id'],
@@ -1642,11 +1642,15 @@ class $StepsTable extends Steps with TableInfo<$StepsTable, Step> {
   }
 }
 
-class Step extends DataClass implements Insertable<Step> {
+class StepsData extends DataClass implements Insertable<StepsData> {
   final int id;
   final int value;
   final DateTime loggedAt;
-  const Step({required this.id, required this.value, required this.loggedAt});
+  const StepsData({
+    required this.id,
+    required this.value,
+    required this.loggedAt,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -1664,12 +1668,12 @@ class Step extends DataClass implements Insertable<Step> {
     );
   }
 
-  factory Step.fromJson(
+  factory StepsData.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return Step(
+    return StepsData(
       id: serializer.fromJson<int>(json['id']),
       value: serializer.fromJson<int>(json['value']),
       loggedAt: serializer.fromJson<DateTime>(json['loggedAt']),
@@ -1685,13 +1689,13 @@ class Step extends DataClass implements Insertable<Step> {
     };
   }
 
-  Step copyWith({int? id, int? value, DateTime? loggedAt}) => Step(
+  StepsData copyWith({int? id, int? value, DateTime? loggedAt}) => StepsData(
     id: id ?? this.id,
     value: value ?? this.value,
     loggedAt: loggedAt ?? this.loggedAt,
   );
-  Step copyWithCompanion(StepsCompanion data) {
-    return Step(
+  StepsData copyWithCompanion(StepsCompanion data) {
+    return StepsData(
       id: data.id.present ? data.id.value : this.id,
       value: data.value.present ? data.value.value : this.value,
       loggedAt: data.loggedAt.present ? data.loggedAt.value : this.loggedAt,
@@ -1700,7 +1704,7 @@ class Step extends DataClass implements Insertable<Step> {
 
   @override
   String toString() {
-    return (StringBuffer('Step(')
+    return (StringBuffer('StepsData(')
           ..write('id: $id, ')
           ..write('value: $value, ')
           ..write('loggedAt: $loggedAt')
@@ -1713,13 +1717,13 @@ class Step extends DataClass implements Insertable<Step> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is Step &&
+      (other is StepsData &&
           other.id == this.id &&
           other.value == this.value &&
           other.loggedAt == this.loggedAt);
 }
 
-class StepsCompanion extends UpdateCompanion<Step> {
+class StepsCompanion extends UpdateCompanion<StepsData> {
   final Value<int> id;
   final Value<int> value;
   final Value<DateTime> loggedAt;
@@ -1733,7 +1737,7 @@ class StepsCompanion extends UpdateCompanion<Step> {
     required int value,
     this.loggedAt = const Value.absent(),
   }) : value = Value(value);
-  static Insertable<Step> custom({
+  static Insertable<StepsData> custom({
     Expression<int>? id,
     Expression<int>? value,
     Expression<DateTime>? loggedAt,
@@ -3241,14 +3245,14 @@ class $$StepsTableTableManager
         RootTableManager<
           _$AppDatabase,
           $StepsTable,
-          Step,
+          StepsData,
           $$StepsTableFilterComposer,
           $$StepsTableOrderingComposer,
           $$StepsTableAnnotationComposer,
           $$StepsTableCreateCompanionBuilder,
           $$StepsTableUpdateCompanionBuilder,
-          (Step, BaseReferences<_$AppDatabase, $StepsTable, Step>),
-          Step,
+          (StepsData, BaseReferences<_$AppDatabase, $StepsTable, StepsData>),
+          StepsData,
           PrefetchHooks Function()
         > {
   $$StepsTableTableManager(_$AppDatabase db, $StepsTable table)
@@ -3275,8 +3279,8 @@ class $$StepsTableTableManager
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
-                  e.readTable<$StepsTable, Step>(table),
-                  BaseReferences<_$AppDatabase, $StepsTable, Step>(
+                  e.readTable<$StepsTable, StepsData>(table),
+                  BaseReferences<_$AppDatabase, $StepsTable, StepsData>(
                     db,
                     table,
                     e,
@@ -3293,14 +3297,14 @@ typedef $$StepsTableProcessedTableManager =
     ProcessedTableManager<
       _$AppDatabase,
       $StepsTable,
-      Step,
+      StepsData,
       $$StepsTableFilterComposer,
       $$StepsTableOrderingComposer,
       $$StepsTableAnnotationComposer,
       $$StepsTableCreateCompanionBuilder,
       $$StepsTableUpdateCompanionBuilder,
-      (Step, BaseReferences<_$AppDatabase, $StepsTable, Step>),
-      Step,
+      (StepsData, BaseReferences<_$AppDatabase, $StepsTable, StepsData>),
+      StepsData,
       PrefetchHooks Function()
     >;
 

@@ -20,6 +20,8 @@ class _HomeScreenState extends State<HomeScreen> {
   DailySessionData? dailySession;
   List<SessionExerciseStatusData> sessionExerciseStatusList = [];
   WeightData? weightData;
+  double? weeklyWeightChange;
+  StepsData? todaysSteps;
 
   bool isLoading = true;
 
@@ -59,70 +61,79 @@ class _HomeScreenState extends State<HomeScreen> {
             ? Center(
                 child: CircularProgressIndicator(),
               )
-            : Column(
-                children: [
-                  selectedWorkout != null
-                      ? HomeWorkout(
-                          planData: selectedWorkout!,
-                          dailySessionData: dailySession!,
-                          sessionExerciseStatusDataList:
-                              sessionExerciseStatusList,
-                          updateStatusFromDatabase: () {
-                            fetchTodaysSession();
-                          },
-                        )
-                      : AppButton(
-                          label: "Select Workout Session",
-                          onPressed: () async {
-                            await Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => SelectSessionScreen(),
-                              ),
-                            );
-                            fetchTodaysSession();
-                          },
-                        ),
-                  UserStat(),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  LogActions(
-                    previousWeight: weightData?.value,
-                    onLogged: fetchTodaysSession,
-                  ),
-                  SizedBox(
-                    height: 20,
-                  ),
-                  Container(
-                    padding: EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      spacing: 10,
-                      children: [
-                        SizedBox(
-                          width: 40,
-                          height: 40,
-                          child: CircularProgressIndicator(
-                            value: 0.75,
-                            strokeWidth: 6,
-                            color: Colors.indigoAccent,
+            : SingleChildScrollView(
+                child: Column(
+                  children: [
+                    selectedWorkout != null
+                        ? HomeWorkout(
+                            planData: selectedWorkout!,
+                            dailySessionData: dailySession!,
+                            sessionExerciseStatusDataList:
+                                sessionExerciseStatusList,
+                            updateStatusFromDatabase: () {
+                              fetchTodaysSession();
+                            },
+                          )
+                        : AppButton(
+                            label: "Select Workout Session",
+                            onPressed: () async {
+                              await Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => SelectSessionScreen(),
+                                ),
+                              );
+                              fetchTodaysSession();
+                            },
                           ),
-                        ),
-
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text("3 of 4 workouts this week"),
-                            Text("5 day streak · keep it up"),
-                          ],
-                        ),
-                      ],
+                    SizedBox(
+                      height: 16,
                     ),
-                  ),
-                ],
+                    UserStat(
+                      weight: weightData?.value,
+                      weeklyWeightChange: weeklyWeightChange,
+                      steps: todaysSteps?.value,
+                    ),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    LogActions(
+                      previousWeight: weightData?.value,
+                      onLogged: fetchTodaysSession,
+                    ),
+                    SizedBox(
+                      height: 20,
+                    ),
+                    Container(
+                      padding: EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        spacing: 10,
+                        children: [
+                          SizedBox(
+                            width: 40,
+                            height: 40,
+                            child: CircularProgressIndicator(
+                              value: 0.75,
+                              strokeWidth: 6,
+                              color: Colors.indigoAccent,
+                            ),
+                          ),
+
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text("3 of 4 workouts this week"),
+                              Text("5 day streak · keep it up"),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
       ),
     );
@@ -132,6 +143,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final database = DatabaseProvider().database;
 
     final previousWeight = await findLatestWeight(database);
+    final weightChange = await findWeeklyWeightChange(database);
+    final steps = await findTodaysSteps(database);
     final data = await findTodaysSession(database);
 
     List<SessionExerciseStatusData> sessionExerciseStatusDataList = [];
@@ -154,6 +167,8 @@ class _HomeScreenState extends State<HomeScreen> {
       selectedWorkout = planData;
       sessionExerciseStatusList = sessionExerciseStatusDataList;
       weightData = previousWeight;
+      weeklyWeightChange = weightChange;
+      todaysSteps = steps;
       isLoading = false;
     });
   }

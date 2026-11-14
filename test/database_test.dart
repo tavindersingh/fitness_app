@@ -185,4 +185,72 @@ void main() {
 
     expect(await findLatestWeight(old), isNotNull);
   });
+
+  group('progress', () {
+    test('weekly weight change compares with last entry before the week',
+        () async {
+      await saveTodaysWeight(db, 80.0, now: DateTime(2026, 11, 1, 9));
+      await saveTodaysWeight(db, 79.6, now: DateTime(2026, 11, 10, 9));
+      await saveTodaysWeight(db, 79.4, now: DateTime(2026, 11, 14, 9));
+
+      final change = await findWeeklyWeightChange(
+        db,
+        now: DateTime(2026, 11, 14, 12),
+      );
+      expect(change, -0.6);
+    });
+
+    test('weekly weight change is null with a single entry', () async {
+      await saveTodaysWeight(db, 80.0, now: DateTime(2026, 11, 14, 9));
+      expect(
+        await findWeeklyWeightChange(db, now: DateTime(2026, 11, 14, 12)),
+        isNull,
+      );
+    });
+
+    test('recent weights are the newest ones, oldest first', () async {
+      for (var day = 1; day <= 12; day++) {
+        await saveTodaysWeight(
+          db,
+          80.0 - day / 10,
+          now: DateTime(2026, 11, day, 9),
+        );
+      }
+
+      final recent = await findRecentWeights(db, count: 10);
+      expect(recent, hasLength(10));
+      expect(recent.first.loggedAt, DateTime(2026, 11, 3, 9));
+      expect(recent.last.loggedAt, DateTime(2026, 11, 12, 9));
+    });
+
+    test('workouts per week counts finished sessions by Monday week',
+        () async {
+      final planId = await createPlan([1]);
+      Future<void> addSession(DateTime createdAt, {bool finished = true}) =>
+          db
+              .into(db.dailySession)
+              .insert(
+                DailySessionCompanion.insert(
+                  planId: planId,
+                  createdAt: Value(createdAt),
+                  isFinished: Value(finished),
+                ),
+              );
+
+      // Saturday 14 Nov 2026; this week starts Monday 9 Nov.
+      final now = DateTime(2026, 11, 14, 12);
+      await addSession(DateTime(2026, 11, 9, 7));
+      await addSession(DateTime(2026, 11, 13, 7));
+      await addSession(DateTime(2026, 11, 14, 7), finished: false);
+      await addSession(DateTime(2026, 11, 8, 7)); // Sunday, previous week
+      await addSession(DateTime(2026, 9, 1, 7)); // too old
+
+      final weeks = await findWorkoutsPerWeek(db, weeks: 8, now: now);
+      expect(weeks, hasLength(8));
+      expect(weeks.last.weekStart, DateTime(2026, 11, 9));
+      expect(weeks.last.count, 2);
+      expect(weeks[6].count, 1);
+      expect(weeks.take(6).every((w) => w.count == 0), isTrue);
+    });
+  });
 }
