@@ -279,3 +279,113 @@ Future<List<WeeklyWorkoutCount>> findWorkoutsPerWeek(
       WeeklyWorkoutCount(weekStarts[i], counts[i]),
   ];
 }
+
+/// Fitness goals offered on the Profile screen.
+const List<String> fitnessGoals = [
+  'Lose Weight',
+  'Build Muscle',
+  'Maintain',
+  'Improve Endurance',
+];
+
+/// The user's profile, created empty the first time it's needed.
+Future<UserProfileData> getProfile(AppDatabase database) {
+  return database.transaction(() async {
+    final existing =
+        await (database.select(database.userProfile)
+              ..orderBy([(p) => OrderingTerm.asc(p.id)])
+              ..limit(1))
+            .getSingleOrNull();
+    if (existing != null) return existing;
+
+    final id = await database
+        .into(database.userProfile)
+        .insert(const UserProfileCompanion());
+    return (database.select(
+      database.userProfile,
+    )..where((p) => p.id.equals(id))).getSingle();
+  });
+}
+
+/// Saves the given profile fields; fields left absent are unchanged.
+Future<void> updateProfile(AppDatabase database, UserProfileCompanion changes) {
+  return database.transaction(() async {
+    final profile = await getProfile(database);
+    await (database.update(
+      database.userProfile,
+    )..where((p) => p.id.equals(profile.id))).write(changes);
+  });
+}
+
+/// When the user started: the earliest of the profile, any workout session
+/// and any weight entry.
+Future<DateTime> findMemberSince(AppDatabase database) async {
+  final profile = await getProfile(database);
+
+  final firstSession =
+      await (database.select(database.dailySession)
+            ..orderBy([(s) => OrderingTerm.asc(s.createdAt)])
+            ..limit(1))
+          .getSingleOrNull();
+  final firstWeight =
+      await (database.select(database.weight)
+            ..orderBy([(w) => OrderingTerm.asc(w.loggedAt)])
+            ..limit(1))
+          .getSingleOrNull();
+
+  return [
+    profile.createdAt,
+    ?firstSession?.createdAt,
+    ?firstWeight?.loggedAt,
+  ].reduce((a, b) => a.isBefore(b) ? a : b);
+}
+
+/// How many workouts a week the Home screen counts towards.
+const int weeklyWorkoutGoal = 4;
+
+/// Finished workouts so far this week (from Monday), and the current daily
+/// streak.
+class WorkoutProgress {
+  final int workoutsThisWeek;
+
+  /// Consecutive days with a finished workout, ending today. If today has no
+  /// workout yet, the streak counts back from yesterday, so it isn't lost
+  /// until the day is over.
+  final int streakDays;
+
+  const WorkoutProgress({
+    required this.workoutsThisWeek,
+    required this.streakDays,
+  });
+}
+
+Future<WorkoutProgress> findWorkoutProgress(
+  AppDatabase database, {
+  DateTime? now,
+}) async {
+  final today = startOfDay(now ?? DateTime.now());
+  final thisWeek = await findWorkoutsPerWeek(database, weeks: 1, now: today);
+
+  final finished =
+      await (database.select(database.dailySession)
+            ..where((s) => s.isFinished.equals(true))
+            ..where(
+              (s) => s.createdAt.isSmallerThanValue(startOfNextDay(today)),
+            ))
+          .get();
+  final workoutDays = finished.map((s) => startOfDay(s.createdAt)).toSet();
+
+  var day = workoutDays.contains(today)
+      ? today
+      : DateTime(today.year, today.month, today.day - 1);
+  var streak = 0;
+  while (workoutDays.contains(day)) {
+    streak++;
+    day = DateTime(day.year, day.month, day.day - 1);
+  }
+
+  return WorkoutProgress(
+    workoutsThisWeek: thisWeek.single.count,
+    streakDays: streak,
+  );
+}

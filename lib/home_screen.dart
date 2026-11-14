@@ -6,6 +6,7 @@ import 'package:fitness_app/widgets/app_button.dart';
 import 'package:fitness_app/widgets/home_workout.dart';
 import 'package:fitness_app/widgets/log_actions.dart';
 import 'package:fitness_app/widgets/user_stat.dart';
+import 'package:fitness_app/widgets/weekly_progress_card.dart';
 import 'package:flutter/material.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -22,6 +23,7 @@ class _HomeScreenState extends State<HomeScreen> {
   WeightData? weightData;
   double? weeklyWeightChange;
   StepsData? todaysSteps;
+  WorkoutProgress? workoutProgress;
 
   bool isLoading = true;
 
@@ -103,34 +105,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     SizedBox(
                       height: 20,
                     ),
-                    Container(
-                      padding: EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Row(
-                        spacing: 10,
-                        children: [
-                          SizedBox(
-                            width: 40,
-                            height: 40,
-                            child: CircularProgressIndicator(
-                              value: 0.75,
-                              strokeWidth: 6,
-                              color: Colors.indigoAccent,
-                            ),
-                          ),
-
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text("3 of 4 workouts this week"),
-                              Text("5 day streak · keep it up"),
-                            ],
-                          ),
-                        ],
-                      ),
+                    WeeklyProgressCard(
+                      workoutsThisWeek: workoutProgress?.workoutsThisWeek ?? 0,
+                      weeklyGoal: weeklyWorkoutGoal,
+                      streakDays: workoutProgress?.streakDays ?? 0,
                     ),
                   ],
                 ),
@@ -146,6 +124,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final weightChange = await findWeeklyWeightChange(database);
     final steps = await findTodaysSteps(database);
     final data = await findTodaysSession(database);
+    final progress = await findWorkoutProgress(database);
 
     List<SessionExerciseStatusData> sessionExerciseStatusDataList = [];
     PlanData? planData;
@@ -169,6 +148,7 @@ class _HomeScreenState extends State<HomeScreen> {
       weightData = previousWeight;
       weeklyWeightChange = weightChange;
       todaysSteps = steps;
+      workoutProgress = progress;
       isLoading = false;
     });
   }

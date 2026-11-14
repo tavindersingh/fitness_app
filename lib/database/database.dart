@@ -6,6 +6,7 @@ import 'package:fitness_app/database/daily_session_table.dart';
 import 'package:fitness_app/database/plan_table.dart';
 import 'package:fitness_app/database/session_exercise_status_table.dart';
 import 'package:fitness_app/database/steps_table.dart';
+import 'package:fitness_app/database/user_profile_table.dart';
 import 'package:fitness_app/database/weight_table.dart';
 import 'package:fitness_app/database/workout_exercise_table.dart';
 import 'package:path/path.dart' as p;
@@ -21,6 +22,7 @@ part 'database.g.dart';
     SessionExerciseStatus,
     Weight,
     Steps,
+    UserProfile,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -30,7 +32,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(

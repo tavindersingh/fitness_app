@@ -143,14 +143,15 @@ void main() {
     );
   });
 
-  test('upgrading a version 3 database adds missing tables and columns',
-      () async {
-    final old = AppDatabase.forTesting(
-      NativeDatabase.memory(
-        setup: (raw) {
-          // A version-3 install from before weight/steps and
-          // workoutDurationInSeconds existed.
-          raw.execute('''
+  test(
+    'upgrading a version 3 database adds missing tables and columns',
+    () async {
+      final old = AppDatabase.forTesting(
+        NativeDatabase.memory(
+          setup: (raw) {
+            // A version-3 install from before weight/steps and
+            // workoutDurationInSeconds existed.
+            raw.execute('''
             CREATE TABLE plan (id INTEGER PRIMARY KEY AUTOINCREMENT,
               name TEXT NOT NULL);
             CREATE TABLE workout_exercise (
@@ -170,35 +171,40 @@ void main() {
               created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')));
             PRAGMA user_version = 3;
           ''');
-        },
-      ),
-    );
-    addTearDown(old.close);
+          },
+        ),
+      );
+      addTearDown(old.close);
 
-    await saveTodaysWeight(old, 70);
-    await saveTodaysSteps(old, 1000);
-    final planId = await (old.into(
-      old.plan,
-    )).insert(PlanCompanion.insert(name: 'Push'));
-    final sessionId = await startTodaysSession(old, planId);
-    await finishSession(old, sessionId);
+      await saveTodaysWeight(old, 70);
+      await saveTodaysSteps(old, 1000);
+      final planId = await (old.into(
+        old.plan,
+      )).insert(PlanCompanion.insert(name: 'Push'));
+      final sessionId = await startTodaysSession(old, planId);
+      await finishSession(old, sessionId);
+      await updateProfile(old, const UserProfileCompanion(name: Value('Sam')));
 
-    expect(await findLatestWeight(old), isNotNull);
-  });
+      expect(await findLatestWeight(old), isNotNull);
+      expect((await getProfile(old)).name, 'Sam');
+    },
+  );
 
   group('progress', () {
-    test('weekly weight change compares with last entry before the week',
-        () async {
-      await saveTodaysWeight(db, 80.0, now: DateTime(2026, 11, 1, 9));
-      await saveTodaysWeight(db, 79.6, now: DateTime(2026, 11, 10, 9));
-      await saveTodaysWeight(db, 79.4, now: DateTime(2026, 11, 14, 9));
+    test(
+      'weekly weight change compares with last entry before the week',
+      () async {
+        await saveTodaysWeight(db, 80.0, now: DateTime(2026, 11, 1, 9));
+        await saveTodaysWeight(db, 79.6, now: DateTime(2026, 11, 10, 9));
+        await saveTodaysWeight(db, 79.4, now: DateTime(2026, 11, 14, 9));
 
-      final change = await findWeeklyWeightChange(
-        db,
-        now: DateTime(2026, 11, 14, 12),
-      );
-      expect(change, -0.6);
-    });
+        final change = await findWeeklyWeightChange(
+          db,
+          now: DateTime(2026, 11, 14, 12),
+        );
+        expect(change, -0.6);
+      },
+    );
 
     test('weekly weight change is null with a single entry', () async {
       await saveTodaysWeight(db, 80.0, now: DateTime(2026, 11, 14, 9));
@@ -223,19 +229,17 @@ void main() {
       expect(recent.last.loggedAt, DateTime(2026, 11, 12, 9));
     });
 
-    test('workouts per week counts finished sessions by Monday week',
-        () async {
+    test('workouts per week counts finished sessions by Monday week', () async {
       final planId = await createPlan([1]);
-      Future<void> addSession(DateTime createdAt, {bool finished = true}) =>
-          db
-              .into(db.dailySession)
-              .insert(
-                DailySessionCompanion.insert(
-                  planId: planId,
-                  createdAt: Value(createdAt),
-                  isFinished: Value(finished),
-                ),
-              );
+      Future<void> addSession(DateTime createdAt, {bool finished = true}) => db
+          .into(db.dailySession)
+          .insert(
+            DailySessionCompanion.insert(
+              planId: planId,
+              createdAt: Value(createdAt),
+              isFinished: Value(finished),
+            ),
+          );
 
       // Saturday 14 Nov 2026; this week starts Monday 9 Nov.
       final now = DateTime(2026, 11, 14, 12);
@@ -251,6 +255,113 @@ void main() {
       expect(weeks.last.count, 2);
       expect(weeks[6].count, 1);
       expect(weeks.take(6).every((w) => w.count == 0), isTrue);
+    });
+  });
+
+  group('profile', () {
+    test('getProfile creates one empty profile and reuses it', () async {
+      final first = await getProfile(db);
+      final second = await getProfile(db);
+
+      expect(first.id, second.id);
+      expect(first.name, isNull);
+      expect(await db.select(db.userProfile).get(), hasLength(1));
+    });
+
+    test('updateProfile changes only the given fields', () async {
+      await updateProfile(db, const UserProfileCompanion(name: Value('Sam')));
+      await updateProfile(
+        db,
+        const UserProfileCompanion(age: Value(29), heightCm: Value(178)),
+      );
+      await updateProfile(
+        db,
+        UserProfileCompanion(goal: Value(fitnessGoals[1])),
+      );
+
+      final profile = await getProfile(db);
+      expect(profile.name, 'Sam');
+      expect(profile.age, 29);
+      expect(profile.heightCm, 178);
+      expect(profile.goal, 'Build Muscle');
+      expect(await db.select(db.userProfile).get(), hasLength(1));
+    });
+
+    test('member since is the earliest activity', () async {
+      await saveTodaysWeight(db, 80, now: DateTime(2025, 3, 10, 8));
+      final planId = await createPlan([1]);
+      await startTodaysSession(db, planId, now: DateTime(2025, 1, 20, 7));
+
+      expect(await findMemberSince(db), DateTime(2025, 1, 20, 7));
+    });
+  });
+
+  group('workout progress', () {
+    late int planId;
+    // Saturday 14 Nov 2026; the week started Monday 9 Nov.
+    final now = DateTime(2026, 11, 14, 12);
+
+    Future<void> addSession(DateTime createdAt, {bool finished = true}) => db
+        .into(db.dailySession)
+        .insert(
+          DailySessionCompanion.insert(
+            planId: planId,
+            createdAt: Value(createdAt),
+            isFinished: Value(finished),
+          ),
+        );
+
+    setUp(() async {
+      planId = await createPlan([1]);
+    });
+
+    test('no workouts means zero progress and no streak', () async {
+      final progress = await findWorkoutProgress(db, now: now);
+      expect(progress.workoutsThisWeek, 0);
+      expect(progress.streakDays, 0);
+    });
+
+    test('counts finished workouts this week and the streak', () async {
+      await addSession(DateTime(2026, 11, 8, 7)); // Sunday, last week
+      await addSession(DateTime(2026, 11, 9, 7)); // Monday
+      await addSession(DateTime(2026, 11, 10, 7)); // Tuesday
+      await addSession(DateTime(2026, 11, 12, 7)); // Thursday, gap on Wed
+      await addSession(DateTime(2026, 11, 13, 7)); // Friday
+      await addSession(DateTime(2026, 11, 14, 7)); // today
+      await addSession(DateTime(2026, 11, 11, 7), finished: false);
+
+      final progress = await findWorkoutProgress(db, now: now);
+      expect(progress.workoutsThisWeek, 5);
+      expect(progress.streakDays, 3); // Thu, Fri, Sat
+    });
+
+    test('streak is kept until today is over', () async {
+      await addSession(DateTime(2026, 11, 12, 7));
+      await addSession(DateTime(2026, 11, 13, 7));
+
+      final progress = await findWorkoutProgress(db, now: now);
+      expect(progress.streakDays, 2);
+    });
+
+    test('streak resets after a missed day', () async {
+      await addSession(DateTime(2026, 11, 11, 7));
+      await addSession(DateTime(2026, 11, 12, 7));
+
+      final progress = await findWorkoutProgress(db, now: now);
+      expect(progress.streakDays, 0);
+      expect(progress.workoutsThisWeek, 2);
+    });
+
+    test('streak continues across the start of the week', () async {
+      await addSession(DateTime(2026, 11, 8, 7)); // Sunday
+      await addSession(DateTime(2026, 11, 9, 7)); // Monday
+
+      final progress = await findWorkoutProgress(
+        db,
+        now: DateTime(2026, 11, 9, 20),
+      );
+      expect(progress.workoutsThisWeek, 1);
+      expect(progress.streakDays, 2);
     });
   });
 }
