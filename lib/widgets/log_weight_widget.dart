@@ -1,6 +1,7 @@
 import 'package:fitness_app/database/database_provider.dart';
 import 'package:fitness_app/database/queries.dart';
 import 'package:fitness_app/widgets/app_button.dart';
+import 'package:fitness_app/widgets/quick_adjust_chips.dart';
 import 'package:flutter/material.dart';
 
 class LogWeightWidget extends StatefulWidget {
@@ -44,6 +45,16 @@ class _LogWeightWidgetState extends State<LogWeightWidget> {
   }
 
   double _round(double value) => (value * 10).roundToDouble() / 10;
+
+  static const double minWeight = 1;
+  static const double maxWeight = 500;
+
+  /// Adds [amount] kg (negative to subtract), kept within a sensible range.
+  void adjust(double amount) {
+    setState(() {
+      newWeight = _round(newWeight + amount).clamp(minWeight, maxWeight);
+    });
+  }
 
   bool isSaving = false;
 
@@ -173,6 +184,14 @@ class _LogWeightWidgetState extends State<LogWeightWidget> {
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: 20),
+          QuickAdjustChips<double>(
+            amounts: const [-1, -0.5, 0.5, 1],
+            format: (amount) => amount == amount.roundToDouble()
+                ? amount.toStringAsFixed(0)
+                : amount.toString(),
+            onAdjust: adjust,
           ),
           SizedBox(
             height: 20,

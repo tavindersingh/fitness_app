@@ -1,7 +1,9 @@
 import 'package:fitness_app/database/database_provider.dart';
 import 'package:fitness_app/database/queries.dart';
 import 'package:fitness_app/widgets/app_button.dart';
+import 'package:fitness_app/widgets/quick_adjust_chips.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class AddStepsWidget extends StatefulWidget {
   const new({super.key});
@@ -62,6 +64,15 @@ class _AddStepsWidgetState extends State<AddStepsWidget> {
 
     setState(() {
       newSteps = newSteps < step ? 0 : newSteps - step;
+    });
+  }
+
+  static const int maxSteps = 100000;
+
+  /// Adds [amount] steps (negative to subtract), never below zero.
+  void adjust(int amount) {
+    setState(() {
+      newSteps = (newSteps + amount).clamp(0, maxSteps);
     });
   }
 
@@ -129,7 +140,7 @@ class _AddStepsWidgetState extends State<AddStepsWidget> {
               Column(
                 children: [
                   Text(
-                    newSteps.toString(),
+                    NumberFormat.decimalPattern().format(newSteps),
                     style: TextStyle(
                       fontSize: 44,
                       fontWeight: FontWeight.w800,
@@ -173,6 +184,12 @@ class _AddStepsWidgetState extends State<AddStepsWidget> {
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: 20),
+          QuickAdjustChips<int>(
+            amounts: const [-1000, -500, 500, 1000],
+            format: NumberFormat.decimalPattern().format,
+            onAdjust: adjust,
           ),
           SizedBox(
             height: 20,
