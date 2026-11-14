@@ -1,13 +1,12 @@
-import 'package:drift/drift.dart' hide Column;
 import 'package:fitness_app/database/database.dart';
 import 'package:fitness_app/database/database_provider.dart';
+import 'package:fitness_app/database/queries.dart';
 import 'package:fitness_app/select_session_screen.dart';
 import 'package:fitness_app/widgets/app_button.dart';
 import 'package:fitness_app/widgets/home_workout.dart';
 import 'package:fitness_app/widgets/log_actions.dart';
 import 'package:fitness_app/widgets/user_stat.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -87,7 +86,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   SizedBox(
                     height: 10,
                   ),
-                  LogActions(),
+                  LogActions(
+                    previousWeight: weightData?.value,
+                    onLogged: fetchTodaysSession,
+                  ),
                   SizedBox(
                     height: 20,
                   ),
@@ -127,51 +129,28 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> fetchTodaysSession() async {
-    final databaseProvider = DatabaseProvider();
-    final database = databaseProvider.database;
+    final database = DatabaseProvider().database;
 
-    final previousWeight =
-        await (database.select(database.weight)
-              ..orderBy([(weight) => OrderingTerm.desc(weight.loggedAt)]))
-            .getSingleOrNull();
+    final previousWeight = await findLatestWeight(database);
+    final data = await findTodaysSession(database);
 
-    String currentDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    List<SessionExerciseStatusData> sessionExerciseStatusDataList = [];
+    PlanData? planData;
 
-    DailySessionData? data =
-        await (database.select(
-              database.dailySession,
-            )..where((session) {
-              return session.createdAt.date.equals(currentDate);
-            }))
-            .getSingleOrNull();
+    if (data != null) {
+      sessionExerciseStatusDataList = await (database.select(
+        database.sessionExerciseStatus,
+      )..where((status) => status.dailySessionId.equals(data.id))).get();
 
-    if (data == null) {
-      setState(() {
-        isLoading = false;
-      });
-      return;
+      planData = await (database.select(
+        database.plan,
+      )..where((plan) => plan.id.equals(data.planId))).getSingleOrNull();
     }
 
-    List<SessionExerciseStatusData> sessionExerciseStatusDataList =
-        await (database.select(
-          database.sessionExerciseStatus,
-        )..where((session) => session.dailySessionId.equals(data.id))).get();
-
-    PlanData? planData = await (database.select(
-      database.plan,
-    )..where((session) => session.id.equals(data.planId))).getSingleOrNull();
-
-    if (planData == null) {
-      setState(() {
-        isLoading = false;
-      });
-      return;
-    }
-
-    await Future.delayed(Duration(milliseconds: 100));
+    if (!mounted) return;
 
     setState(() {
-      dailySession = data;
+      dailySession = planData == null ? null : data;
       selectedWorkout = planData;
       sessionExerciseStatusList = sessionExerciseStatusDataList;
       weightData = previousWeight;

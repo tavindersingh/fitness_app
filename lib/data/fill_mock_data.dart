@@ -8,7 +8,8 @@ Future<void> fillMockSessionsData() async {
   final databaseProvider = DatabaseProvider();
   final database = databaseProvider.database;
 
-  PlanData? planData = await database.select(database.plan).getSingleOrNull();
+  PlanData? planData =
+      await (database.select(database.plan)..limit(1)).getSingleOrNull();
 
   if (planData == null) {
     print("No Plan data found");

@@ -1,0 +1,188 @@
+import 'package:drift/drift.dart' hide isNull, isNotNull;
+import 'package:drift/native.dart';
+import 'package:fitness_app/database/database.dart';
+import 'package:fitness_app/database/queries.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+void main() {
+  late AppDatabase db;
+
+  // The migration test opens a second, separate in-memory database.
+  driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
+
+  setUp(() {
+    db = AppDatabase.forTesting(NativeDatabase.memory());
+  });
+
+  tearDown(() => db.close());
+
+  Future<int> createPlan(List<int> exerciseIds, {String name = 'Legs'}) async {
+    final planId = await db
+        .into(db.plan)
+        .insert(PlanCompanion.insert(name: name));
+    for (final id in exerciseIds) {
+      await db
+          .into(db.workoutExercise)
+          .insert(
+            WorkoutExerciseCompanion.insert(exerciseId: id, planId: planId),
+          );
+    }
+    return planId;
+  }
+
+  test('plan names shorter than 6 characters can be saved', () async {
+    final planId = await createPlan([1], name: 'Legs');
+    expect(planId, greaterThan(0));
+  });
+
+  group('weight', () {
+    test('latest weight works with several days of entries', () async {
+      await saveTodaysWeight(db, 70, now: DateTime(2026, 11, 12, 9));
+      await saveTodaysWeight(db, 71, now: DateTime(2026, 11, 13, 9));
+      await saveTodaysWeight(db, 72, now: DateTime(2026, 11, 14, 9));
+
+      final latest = await findLatestWeight(db);
+      expect(latest!.value, 72);
+    });
+
+    test('saving twice on the same day updates the entry', () async {
+      await saveTodaysWeight(db, 70, now: DateTime(2026, 11, 14, 8));
+      await saveTodaysWeight(db, 70.3, now: DateTime(2026, 11, 14, 20));
+
+      final rows = await db.select(db.weight).get();
+      expect(rows, hasLength(1));
+      expect(rows.single.value, 70.3);
+    });
+
+    test('values are rounded to one decimal', () async {
+      var value = 70.0;
+      for (var i = 0; i < 3; i++) {
+        value += 0.1;
+      }
+      await saveTodaysWeight(db, value, now: DateTime(2026, 11, 14));
+
+      final latest = await findLatestWeight(db);
+      expect(latest!.value, 70.3);
+    });
+  });
+
+  group('steps', () {
+    test('saving updates today and keeps other days', () async {
+      await saveTodaysSteps(db, 4000, now: DateTime(2026, 11, 13, 21));
+      await saveTodaysSteps(db, 1000, now: DateTime(2026, 11, 14, 8));
+      await saveTodaysSteps(db, 2500, now: DateTime(2026, 11, 14, 18));
+
+      final today = await findTodaysSteps(db, now: DateTime(2026, 11, 14, 23));
+      expect(today!.value, 2500);
+      expect(await db.select(db.steps).get(), hasLength(2));
+    });
+  });
+
+  group('daily session', () {
+    test('starting twice on the same day creates one session', () async {
+      final planId = await createPlan([1, 2]);
+      final now = DateTime(2026, 11, 14, 7);
+
+      final results = await Future.wait([
+        startTodaysSession(db, planId, now: now),
+        startTodaysSession(db, planId, now: now),
+      ]);
+
+      expect(results[0], results[1]);
+      expect(await db.select(db.dailySession).get(), hasLength(1));
+      expect(await db.select(db.sessionExerciseStatus).get(), hasLength(2));
+    });
+
+    test('an early-morning session is found as today (local time)', () async {
+      final planId = await createPlan([1]);
+      // 00:30 local time is still "yesterday" in UTC for timezones east of
+      // UTC, which the old DATE(..., 'unixepoch') comparison got wrong.
+      await startTodaysSession(db, planId, now: DateTime(2026, 11, 14, 0, 30));
+
+      final found = await findTodaysSession(
+        db,
+        now: DateTime(2026, 11, 14, 12),
+      );
+      expect(found, isNotNull);
+
+      final yesterday = await findTodaysSession(
+        db,
+        now: DateTime(2026, 11, 13, 12),
+      );
+      expect(yesterday, isNull);
+    });
+
+    test('finishing stores the real duration', () async {
+      final planId = await createPlan([1]);
+      final sessionId = await startTodaysSession(db, planId);
+      final startedAt = DateTime(2026, 11, 14, 7);
+
+      await (db.update(db.dailySession)..where((s) => s.id.equals(sessionId)))
+          .write(DailySessionCompanion(startedAt: Value(startedAt)));
+
+      await finishSession(
+        db,
+        sessionId,
+        now: startedAt.add(const Duration(minutes: 42, seconds: 5)),
+      );
+
+      final session = await (db.select(
+        db.dailySession,
+      )..where((s) => s.id.equals(sessionId))).getSingle();
+      expect(session.isFinished, isTrue);
+      expect(session.workoutDurationInSeconds, 42 * 60 + 5);
+    });
+  });
+
+  test('foreign keys are enforced', () async {
+    await expectLater(
+      db
+          .into(db.dailySession)
+          .insert(DailySessionCompanion.insert(planId: 999)),
+      throwsA(isA<SqliteException>()),
+    );
+  });
+
+  test('upgrading a version 3 database adds missing tables and columns',
+      () async {
+    final old = AppDatabase.forTesting(
+      NativeDatabase.memory(
+        setup: (raw) {
+          // A version-3 install from before weight/steps and
+          // workoutDurationInSeconds existed.
+          raw.execute('''
+            CREATE TABLE plan (id INTEGER PRIMARY KEY AUTOINCREMENT,
+              name TEXT NOT NULL);
+            CREATE TABLE workout_exercise (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              exercise_id INTEGER NOT NULL, plan_id INTEGER NOT NULL);
+            CREATE TABLE daily_session (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              plan_id INTEGER NOT NULL,
+              is_finished INTEGER NOT NULL DEFAULT 0,
+              started_at INTEGER NULL, finished_at INTEGER NULL,
+              created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')));
+            CREATE TABLE session_exercise_status (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              daily_session_id INTEGER NOT NULL,
+              exercise_id INTEGER NOT NULL,
+              is_finished INTEGER NOT NULL DEFAULT 0,
+              created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')));
+            PRAGMA user_version = 3;
+          ''');
+        },
+      ),
+    );
+    addTearDown(old.close);
+
+    await saveTodaysWeight(old, 70);
+    await saveTodaysSteps(old, 1000);
+    final planId = await (old.into(
+      old.plan,
+    )).insert(PlanCompanion.insert(name: 'Push'));
+    final sessionId = await startTodaysSession(old, planId);
+    await finishSession(old, sessionId);
+
+    expect(await findLatestWeight(old), isNotNull);
+  });
+}

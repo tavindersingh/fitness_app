@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:fitness_app/database/database.dart';
 import 'package:fitness_app/widgets/session_history_detail_dialog.dart';
 import 'package:flutter/material.dart';
@@ -131,13 +129,15 @@ class WorkoutHistoryListItem extends StatelessWidget {
   }
 
   int calculateSessionTime() {
-    int totalExercises = sessionExercisesList.length; // 3
-    int singleExerciseTime = 10 * 60; // 10 minutes
+    final stored = dailySession.workoutDurationInSeconds;
+    if (stored != null && stored > 0) return stored;
 
-    int breakBetweenExercise =
-        Random().nextInt(500) + 500; // 5 minutes to 10 minutes
+    final startedAt = dailySession.startedAt;
+    final finishedAt = dailySession.finishedAt;
+    if (startedAt != null && finishedAt != null) {
+      return finishedAt.difference(startedAt).inSeconds;
+    }
 
-    return totalExercises * singleExerciseTime +
-        (totalExercises - 1) * breakBetweenExercise;
+    return 0;
   }
 }

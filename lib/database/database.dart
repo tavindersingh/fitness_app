@@ -26,8 +26,44 @@ part 'database.g.dart';
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
+  /// Used by tests to run against an in-memory database.
+  AppDatabase.forTesting(super.executor);
+
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+    onCreate: (m) => m.createAll(),
+    onUpgrade: (m, from, to) async {
+      // Earlier versions added tables and columns without always bumping
+      // schemaVersion, so an existing install may be missing any of them.
+      // Create whatever is missing instead of relying on the version number.
+      await _createMissingTablesAndColumns(m);
+    },
+    beforeOpen: (details) async {
+      await customStatement('PRAGMA foreign_keys = ON');
+    },
+  );
+
+  Future<void> _createMissingTablesAndColumns(Migrator m) async {
+    for (final table in allTables) {
+      final existingColumns = await customSelect(
+        'PRAGMA table_info("${table.actualTableName}")',
+      ).map((row) => row.read<String>('name')).get();
+
+      if (existingColumns.isEmpty) {
+        await m.createTable(table);
+        continue;
+      }
+
+      for (final column in table.$columns) {
+        if (!existingColumns.contains(column.name)) {
+          await m.addColumn(table, column);
+        }
+      }
+    }
+  }
 }
 
 // Helper function to open the connection

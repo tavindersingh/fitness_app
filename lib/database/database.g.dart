@@ -28,7 +28,7 @@ class $PlanTable extends Plan with TableInfo<$PlanTable, PlanData> {
     aliasedName,
     false,
     additionalChecks: GeneratedColumn.checkTextLength(
-      minTextLength: 6,
+      minTextLength: 1,
       maxTextLength: 32,
     ),
     type: DriftSqlType.string,

@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' hide Column;
 import 'package:fitness_app/data/exercise_list.dart';
 import 'package:fitness_app/database/database.dart';
 import 'package:fitness_app/database/database_provider.dart';
+import 'package:fitness_app/database/queries.dart';
 import 'package:fitness_app/models/exercise.dart';
 import 'package:fitness_app/models/workout.dart';
 import 'package:fitness_app/widgets/app_button.dart';
@@ -67,23 +68,13 @@ class _CurrentWorkoutScreenState extends State<CurrentWorkoutScreen> {
         .write(SessionExerciseStatusCompanion(isFinished: Value(isFinished)));
   }
 
-  Future<void> finishSession(int dailySessionId) async {
-    final databaseProvider = DatabaseProvider();
-    final database = databaseProvider.database;
+  Future<void> _finishSession(int dailySessionId) async {
+    await finishSession(DatabaseProvider().database, dailySessionId);
 
-    isWorkoutFinished = true;
-
-    await (database.update(
-      database.dailySession,
-    )..where((session) => session.id.equals(dailySessionId))).write(
-      DailySessionCompanion(
-        isFinished: Value(true),
-        finishedAt: Value(DateTime.now()),
-        workoutDurationInSeconds: Value(secondsPassed),
-      ),
-    );
-
-    setState(() {});
+    if (!mounted) return;
+    setState(() {
+      isWorkoutFinished = true;
+    });
   }
 
   void showConfirmationDialog() async {
@@ -112,7 +103,7 @@ class _CurrentWorkoutScreenState extends State<CurrentWorkoutScreen> {
     );
 
     if (result != null && result) {
-      finishSession(widget.dailySessionData.id);
+      await _finishSession(widget.dailySessionData.id);
     }
   }
 
@@ -195,6 +186,7 @@ class _CurrentWorkoutScreenState extends State<CurrentWorkoutScreen> {
                                     workoutList[index].exercise.id,
                                     value,
                                   );
+                                  if (!mounted) return;
                                   setState(() {
                                     workoutList[index].isCompleted = value;
                                   });

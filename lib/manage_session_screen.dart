@@ -27,6 +27,26 @@ class _ManageSessionScreenState extends State<ManageSessionScreen> {
   }
 
   @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  /// Returns an error message, or null if the plan can be saved.
+  String? validatePlan(String name, List<int> exerciseIds) {
+    if (name.isEmpty) return "Please enter a session name.";
+    if (name.length > 32) return "Session name must be 32 characters or fewer.";
+    if (exerciseIds.isEmpty) return "Please select at least one exercise.";
+    return null;
+  }
+
+  void showError(String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xFF0b0d0f),
@@ -42,12 +62,23 @@ class _ManageSessionScreenState extends State<ManageSessionScreen> {
         actions: [
           IconButton(
             onPressed: () async {
-              String name = _nameController.text;
+              final name = _nameController.text.trim();
+              final error = validatePlan(name, selectedExerciseIds);
 
-              await storePlanDetails(
-                name,
-                selectedExerciseIds,
-              );
+              if (error != null) {
+                showError(error);
+                return;
+              }
+
+              try {
+                await storePlanDetails(
+                  name,
+                  selectedExerciseIds,
+                );
+              } catch (e) {
+                showError("Couldn't save the session. Please try again.");
+                return;
+              }
 
               if (context.mounted) {
                 Navigator.of(context).pop();
@@ -65,6 +96,7 @@ class _ManageSessionScreenState extends State<ManageSessionScreen> {
           children: [
             TextField(
               controller: _nameController,
+              maxLength: 32,
               decoration: InputDecoration(
                 border: OutlineInputBorder(),
                 hintText: "Session Name",
@@ -208,21 +240,23 @@ class _ManageSessionScreenState extends State<ManageSessionScreen> {
     final databaseProvider = DatabaseProvider();
     final database = databaseProvider.database;
 
-    int planId = await database
-        .into(database.plan)
-        .insert(
-          PlanCompanion.insert(name: name),
-        );
-
-    for (int id in selectedExerciseIds) {
-      await database
-          .into(database.workoutExercise)
+    await database.transaction(() async {
+      int planId = await database
+          .into(database.plan)
           .insert(
-            WorkoutExerciseCompanion.insert(
-              exerciseId: id,
-              planId: planId,
-            ),
+            PlanCompanion.insert(name: name),
           );
-    }
+
+      for (int id in selectedExerciseIds) {
+        await database
+            .into(database.workoutExercise)
+            .insert(
+              WorkoutExerciseCompanion.insert(
+                exerciseId: id,
+                planId: planId,
+              ),
+            );
+      }
+    });
   }
 }

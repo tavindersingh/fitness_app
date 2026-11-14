@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:fitness_app/database/database.dart';
 import 'package:fitness_app/database/database_provider.dart';
+import 'package:fitness_app/database/queries.dart';
 import 'package:fitness_app/manage_session_screen.dart';
 import 'package:flutter/material.dart';
 
@@ -14,6 +15,7 @@ class SelectSessionScreen extends StatefulWidget {
 
 class _SelectSessionScreenState extends State<SelectSessionScreen> {
   late StreamController<List<PlanData>> _plansController;
+  bool _isSaving = false;
 
   @override
   void initState() {
@@ -22,6 +24,12 @@ class _SelectSessionScreenState extends State<SelectSessionScreen> {
     fetchExercisePlans();
 
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _plansController.close();
+    super.dispose();
   }
 
   @override
@@ -64,7 +72,18 @@ class _SelectSessionScreenState extends State<SelectSessionScreen> {
 
               return GestureDetector(
                 onTap: () async {
-                  await saveSelectedPlan(planData);
+                  // Ignore extra taps while the first one is still saving,
+                  // otherwise two sessions get created for today.
+                  if (_isSaving) return;
+                  _isSaving = true;
+                  try {
+                    await startTodaysSession(
+                      DatabaseProvider().database,
+                      planData.id,
+                    );
+                  } finally {
+                    _isSaving = false;
+                  }
 
                   if (context.mounted) {
                     Navigator.of(context).pop();
@@ -97,36 +116,13 @@ class _SelectSessionScreenState extends State<SelectSessionScreen> {
     );
   }
 
-  Future<void> saveSelectedPlan(PlanData planData) async {
-    final databaseProvider = DatabaseProvider();
-    final database = databaseProvider.database;
-
-    List<WorkoutExerciseData> filteredWorkoutList = await (database.select(
-      database.workoutExercise,
-    )..where((workout) => workout.planId.equals(planData.id))).get();
-
-    final dailySessionId = await database
-        .into(database.dailySession)
-        .insert(DailySessionCompanion.insert(planId: planData.id));
-
-    for (var workout in filteredWorkoutList) {
-      await database
-          .into(database.sessionExerciseStatus)
-          .insert(
-            SessionExerciseStatusCompanion.insert(
-              dailySessionId: dailySessionId,
-              exerciseId: workout.exerciseId,
-            ),
-          );
-    }
-  }
-
   Future<void> fetchExercisePlans() async {
     final databaseProvider = DatabaseProvider();
     final database = databaseProvider.database;
 
     List<PlanData> plansList = await database.select(database.plan).get();
 
+    if (_plansController.isClosed) return;
     _plansController.sink.add(plansList);
   }
 }

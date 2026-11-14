@@ -1,28 +1,52 @@
+import 'package:fitness_app/database/database_provider.dart';
+import 'package:fitness_app/database/queries.dart';
 import 'package:fitness_app/widgets/app_button.dart';
 import 'package:flutter/material.dart';
 
 class AddStepsWidget extends StatefulWidget {
-  final double previousSteps;
-
-  const new({
-    super.key,
-    required this.previousSteps,
-  });
+  const new({super.key});
 
   @override
   State<AddStepsWidget> createState() => _AddStepsWidgetState();
 }
 
 class _AddStepsWidgetState extends State<AddStepsWidget> {
-  late double newSteps;
+  int newSteps = 0;
+  bool isSaving = false;
 
-  final double step = 100;
+  final int step = 100;
 
   @override
   void initState() {
     super.initState();
+    loadTodaysSteps();
+  }
 
-    newSteps = widget.previousSteps;
+  /// Starts from today's saved count, so saving again updates it.
+  Future<void> loadTodaysSteps() async {
+    final today = await findTodaysSteps(DatabaseProvider().database);
+    if (!mounted || today == null) return;
+    setState(() {
+      newSteps = today.value;
+    });
+  }
+
+  Future<void> saveSteps() async {
+    if (isSaving) return;
+    setState(() => isSaving = true);
+
+    try {
+      await saveTodaysSteps(DatabaseProvider().database, newSteps);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => isSaving = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Couldn't save your steps.")),
+      );
+      return;
+    }
+
+    if (mounted) Navigator.of(context).pop(true);
   }
 
   void increment() {
@@ -37,7 +61,7 @@ class _AddStepsWidgetState extends State<AddStepsWidget> {
     }
 
     setState(() {
-      newSteps -= step;
+      newSteps = newSteps < step ? 0 : newSteps - step;
     });
   }
 
@@ -105,7 +129,7 @@ class _AddStepsWidgetState extends State<AddStepsWidget> {
               Column(
                 children: [
                   Text(
-                    newSteps.toStringAsFixed(0),
+                    newSteps.toString(),
                     style: TextStyle(
                       fontSize: 44,
                       fontWeight: FontWeight.w800,
@@ -155,7 +179,7 @@ class _AddStepsWidgetState extends State<AddStepsWidget> {
           ),
           AppButton(
             label: 'Save',
-            onPressed: () {},
+            onPressed: isSaving ? null : saveSteps,
           ),
         ],
       ),

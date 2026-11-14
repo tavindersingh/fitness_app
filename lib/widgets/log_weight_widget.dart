@@ -1,6 +1,5 @@
-import 'package:drift/drift.dart' hide Column;
-import 'package:fitness_app/database/database.dart';
 import 'package:fitness_app/database/database_provider.dart';
+import 'package:fitness_app/database/queries.dart';
 import 'package:fitness_app/widgets/app_button.dart';
 import 'package:flutter/material.dart';
 
@@ -25,62 +24,45 @@ class _LogWeightWidgetState extends State<LogWeightWidget> {
   void initState() {
     super.initState();
 
-    newWeight = widget.previousWeight;
+    newWeight = _round(widget.previousWeight);
   }
 
   void increment() {
     setState(() {
-      newWeight += step;
+      newWeight = _round(newWeight + step);
     });
   }
 
   void decrement() {
-    if (newWeight <= 0) {
+    if (newWeight <= step) {
       return;
     }
 
     setState(() {
-      newWeight -= step;
+      newWeight = _round(newWeight - step);
     });
   }
 
+  double _round(double value) => (value * 10).roundToDouble() / 10;
+
+  bool isSaving = false;
+
   Future<void> logWeight() async {
-    final databaseProvider = DatabaseProvider();
-    final database = databaseProvider.database;
+    if (isSaving) return;
+    setState(() => isSaving = true);
 
-    DateTime now = DateTime.now();
-
-    DateTime onlyDate = DateTime(
-      now.year,
-      now.month,
-      now.day,
-    );
-
-    final existingTodaysWeight =
-        await (database.select(
-              database.weight,
-            )..where(
-              (weight) => weight.loggedAt.isBiggerOrEqualValue(onlyDate),
-            ))
-            .getSingleOrNull();
-
-    if (existingTodaysWeight != null) {
-      await (database.update(database.weight)
-            ..where((weight) => weight.loggedAt.isBiggerOrEqualValue(onlyDate)))
-          .write(
-            WeightCompanion(
-              value: Value(newWeight),
-            ),
-          );
-    } else {
-      await database
-          .into(database.weight)
-          .insert(
-            WeightCompanion(
-              value: Value(newWeight),
-            ),
-          );
+    try {
+      await saveTodaysWeight(DatabaseProvider().database, newWeight);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => isSaving = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Couldn't save your weight.")),
+      );
+      return;
     }
+
+    if (mounted) Navigator.of(context).pop(true);
   }
 
   @override
@@ -197,7 +179,7 @@ class _LogWeightWidgetState extends State<LogWeightWidget> {
           ),
           AppButton(
             label: 'Save',
-            onPressed: logWeight,
+            onPressed: isSaving ? null : logWeight,
           ),
         ],
       ),
