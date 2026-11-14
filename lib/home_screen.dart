@@ -3,6 +3,7 @@ import 'package:fitness_app/database/database_provider.dart';
 import 'package:fitness_app/database/queries.dart';
 import 'package:fitness_app/select_session_screen.dart';
 import 'package:fitness_app/widgets/app_button.dart';
+import 'package:fitness_app/widgets/home_greeting.dart';
 import 'package:fitness_app/widgets/home_workout.dart';
 import 'package:fitness_app/widgets/log_actions.dart';
 import 'package:fitness_app/widgets/user_stat.dart';
@@ -24,6 +25,7 @@ class _HomeScreenState extends State<HomeScreen> {
   double? weeklyWeightChange;
   StepsData? todaysSteps;
   WorkoutProgress? workoutProgress;
+  String? profileName;
 
   bool isLoading = true;
 
@@ -39,23 +41,7 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: Color(0xFF0b0d0f),
       appBar: AppBar(
         backgroundColor: Color(0xFF0b0d0f),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Monday, Sep 7",
-              style: TextStyle(fontSize: 14, color: Colors.grey),
-            ),
-            Text(
-              "Good Morning, Alex",
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 28,
-                color: Colors.white,
-              ),
-            ),
-          ],
-        ),
+        title: HomeGreeting(now: DateTime.now(), name: profileName),
       ),
       body: Container(
         padding: EdgeInsets.all(20),
@@ -125,6 +111,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final steps = await findTodaysSteps(database);
     final data = await findTodaysSession(database);
     final progress = await findWorkoutProgress(database);
+    final profile = await getProfile(database);
 
     List<SessionExerciseStatusData> sessionExerciseStatusDataList = [];
     PlanData? planData;
@@ -149,6 +136,7 @@ class _HomeScreenState extends State<HomeScreen> {
       weeklyWeightChange = weightChange;
       todaysSteps = steps;
       workoutProgress = progress;
+      profileName = profile.name;
       isLoading = false;
     });
   }

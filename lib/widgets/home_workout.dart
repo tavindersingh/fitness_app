@@ -62,11 +62,6 @@ class HomeWorkout extends StatelessWidget {
                 "${sessionExerciseStatusDataList.length} exercises",
                 style: TextStyle(color: Colors.white, fontSize: 16),
               ),
-              Text("·", style: TextStyle(color: Colors.white, fontSize: 16)),
-              Text(
-                "~45 min",
-                style: TextStyle(color: Colors.white, fontSize: 16),
-              ),
             ],
           ),
 
